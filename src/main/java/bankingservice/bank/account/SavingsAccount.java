@@ -17,6 +17,10 @@ public class SavingsAccount extends Account {
         this.endDate = endDate;
     }
 
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
     @Override
     public void deposit(double amount) {
         if (amount < 0) {
@@ -24,7 +28,7 @@ public class SavingsAccount extends Account {
         }
 
         balance += amount;
-        addTransaction(new Transaction(TransactionType.DEPOSIT, amount, LocalDate.now()));
+//        addTransaction(new Transaction(TransactionType.DEPOSIT, amount, LocalDate.now()));
     }
 
     @Override
@@ -43,7 +47,7 @@ public class SavingsAccount extends Account {
         }
 
         balance -= amount;
-        addTransaction(new Transaction(TransactionType.WITHDRAW, amount, LocalDate.now()));
+//        addTransaction(new Transaction(TransactionType.WITHDRAW, amount, LocalDate.now()));
     }
 
     @Override
@@ -63,18 +67,14 @@ public class SavingsAccount extends Account {
 
         balance -= amount;
         destinationAccount.balance += amount;
-        addTransaction(new Transaction(TransactionType.TRANSFER, amount, destinationAccount.getAccountId(), LocalDate.now()));
-        destinationAccount.addTransaction(new Transaction(TransactionType.RECEIVE, amount, getAccountId(), LocalDate.now()));
+//        addTransaction(new Transaction(TransactionType.TRANSFER, amount, destinationAccount.getAccountId(), LocalDate.now()));
+//        destinationAccount.addTransaction(new Transaction(TransactionType.RECEIVE, amount, getAccountId(), LocalDate.now()));
     }
 
     @Override
     public void addInterest() {
         double interestAmount = balance * interestRate / 100;
         balance += interestAmount;
-        addTransaction(new Transaction(TransactionType.INTEREST, interestAmount, LocalDate.now()));
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
+//        addTransaction(new Transaction(TransactionType.INTEREST, interestAmount, LocalDate.now()));
     }
 }

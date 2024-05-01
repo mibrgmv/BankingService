@@ -14,7 +14,6 @@ public abstract class Account {
     private int accountId;
     private Client owner;
     private Bank bank;
-    private List<Transaction> transactions;
     private boolean isSuspicious;
     private AccountType accountType;
     double balance;
@@ -26,11 +25,9 @@ public abstract class Account {
         this.owner = owner;
         this.bank = bank;
         this.balance = balance;
-        this.transactions = new ArrayList<>();
         this.isSuspicious = false;
         this.limitForSuspiciousAccount = bank.getLimitForSuspiciousAccount();
         this.accountType = accountType;
-        this.interestRate = bank.getInterestRateForAccountType(this.accountType, this.balance);
     }
 
     public int getAccountId() {
@@ -53,10 +50,6 @@ public abstract class Account {
         return balance;
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
     public boolean isSuspicious() {
         return isSuspicious;
     }
@@ -65,8 +58,8 @@ public abstract class Account {
         return limitForSuspiciousAccount;
     }
 
-    public void addTransaction(Transaction transaction) {
-        transactions.add(transaction);
+    public double getInterestRate() {
+        return interestRate;
     }
 
     public void checkSuspiciousActivity() {
@@ -75,6 +68,15 @@ public abstract class Account {
         } else if (isSuspicious && (owner.hasAddress() && owner.hasPassport())) {
             isSuspicious = false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "id: " + this.getAccountId() + '\n' +
+                "owner: " + this.getOwner().getFirstName() + ' ' + this.getOwner().getLastName() + '\n' +
+                "bank: " + this.getBank().getName() + '\n' +
+                "type: " + this.getAccountType() + '\n' +
+                "balance: " + this.getBalance();
     }
 
     public abstract void deposit(double amount);

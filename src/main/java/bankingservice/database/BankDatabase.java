@@ -26,6 +26,28 @@ public class BankDatabase {
         pstmt.executeUpdate();
     }
 
+    public static Bank findById(int id) throws SQLException {
+        var sql = "SELECT * FROM banks WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+
+        pstmt.setInt(1, id);
+        var rs = pstmt.executeQuery();
+        if (rs.next()) {
+            return new Bank(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getDouble("debit_interest_rate"),
+                    rs.getDouble("savings_interest_rate"),
+                    rs.getDouble("credit_commission"),
+                    rs.getDouble("credit_limit"),
+                    rs.getDouble("suspicious_account_limit")
+            );
+        }
+        return null;
+    }
+
     public static List<Bank> getBanks() throws SQLException {
         var products = new ArrayList<Bank>();
 

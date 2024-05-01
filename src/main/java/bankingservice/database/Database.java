@@ -7,9 +7,13 @@ import java.sql.SQLException;
 public class Database {
     public static Connection connect() {
         try {
-            var url = DatabaseConfig.getDbUrl();
-            var username = DatabaseConfig.getDbUsername();
-            var password = DatabaseConfig.getDbPassword();
+            // TODO
+//            var url = DatabaseConfig.getDbUrl();
+//            var username = DatabaseConfig.getDbUsername();
+//            var password = DatabaseConfig.getDbPassword();
+            var url = "jdbc:postgresql://localhost:5432/bankingservice";
+            var username = "mibrgmv";
+            var password = "mibrgmv";
 
             return DriverManager.getConnection(url, username, password);
         } catch (SQLException e) {

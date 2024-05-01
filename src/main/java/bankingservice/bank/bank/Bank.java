@@ -3,7 +3,9 @@ package bankingservice.bank.bank;
 import bankingservice.bank.account.*;
 import bankingservice.bank.client.Client;
 import bankingservice.bank.service.AccountService;
+import bankingservice.database.AccountDatabase;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,32 +49,20 @@ public class Bank {
         return commissionForCreditAccount;
     }
 
-    public void setCommissionForCreditAccount(double commissionForCreditAccount) {
-        this.commissionForCreditAccount = commissionForCreditAccount;
-    }
-
     public double getInterestRateForDebitAccount() {
         return interestRateForDebitAccount;
-    }
-
-    public void setInterestRateForDebitAccount(double interestRateForDebitAccount) {
-        this.interestRateForDebitAccount = interestRateForDebitAccount;
     }
 
     public double getInterestRatesForSavingsAccount() {
         return interestRatesForSavingsAccount;
     }
 
-    public void setInterestRateForSavingsAccount(double interestRatesForSavingsAccount) {
-        this.interestRatesForSavingsAccount = interestRatesForSavingsAccount;
-    }
-
     public double getLimitForSuspiciousAccount() {
         return limitForSuspiciousAccount;
     }
 
-    public void setLimitForSuspiciousAccount(double limitForSuspiciousAccount) {
-        this.limitForSuspiciousAccount = limitForSuspiciousAccount;
+    public double getCreditLimit() {
+        return creditLimit;
     }
 
     public List<Client> getClients() {
@@ -83,23 +73,20 @@ public class Bank {
         return accounts;
     }
 
-    public Account openAccount(Client client, AccountType accountType, int duration) {
-        int accountId = accountService.generateAccountId();
-        Account account;
+    public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
+        int id;
         switch (accountType) {
             case SAVINGS:
-                LocalDate endDate = LocalDate.now().plusYears(duration);
-                account = new SavingsAccount(accountId, client, this, 0, endDate);
-                accounts.add(account);
-                return account;
+                id = AccountDatabase.add(client.getClientId(), this.bankId, accountType, this.limitForSuspiciousAccount, this.interestRatesForSavingsAccount);
+                AccountDatabase.alterEndDate(id, LocalDate.now().plusYears(yearsDuration));
+                return id;
             case DEBIT:
-                account = new DebitAccount(accountId, client, this, 0);
-                accounts.add(account);
-                return account;
+                id = AccountDatabase.add(client.getClientId(), this.bankId, accountType, this.limitForSuspiciousAccount, this.interestRateForDebitAccount);
+                return id;
             case CREDIT:
-                account = new CreditAccount(accountId, client, this, 0, creditLimit);
-                accounts.add(account);
-                return account;
+                id = AccountDatabase.add(client.getClientId(), this.bankId, accountType, this.limitForSuspiciousAccount, this.commissionForCreditAccount);
+                AccountDatabase.alterCreditLimit(id, this.creditLimit);
+                return id;
             default:
                 throw new IllegalStateException("Unexpected value: " + accountType);
         }
@@ -128,7 +115,7 @@ public class Bank {
 
     public void addInterestToAllAccounts() {
         for (Account account : accounts) {
-            accountService.addInterest(account);
+            account.addInterest();
         }
     }
 }
