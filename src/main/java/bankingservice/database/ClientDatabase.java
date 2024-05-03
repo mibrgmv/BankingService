@@ -36,7 +36,9 @@ public class ClientDatabase {
                         rs.getInt("id"),
                         rs.getString("first_name"),
                         rs.getString("last_name"),
-                        rs.getDate("date_of_birth").toLocalDate()
+                        rs.getDate("date_of_birth").toLocalDate(),
+                        rs.getString("address"),
+                        rs.getString("passport")
                 );
             }
         }

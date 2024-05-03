@@ -59,14 +59,14 @@ public class Bank {
         int id;
         switch (accountType) {
             case SAVINGS:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRatesForSavingsAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRatesForSavingsAccount);
                 AccountDatabase.alterEndDate(id, LocalDate.now().plusYears(yearsDuration));
                 return id;
             case DEBIT:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRateForDebitAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRateForDebitAccount);
                 return id;
             case CREDIT:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.commissionForCreditAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.commissionForCreditAccount);
                 AccountDatabase.alterCreditLimit(id, this.creditLimit);
                 return id;
             default:
