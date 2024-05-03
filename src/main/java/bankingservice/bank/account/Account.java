@@ -1,7 +1,7 @@
 package bankingservice.bank.account;
 
-import bankingservice.bank.bank.Bank;
-import bankingservice.bank.client.Client;
+import bankingservice.bank.service.AccountInterface;
+import bankingservice.database.AccountDatabase;
 import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
@@ -10,102 +10,90 @@ import bankingservice.exceptions.WithdrawalBeforeEndDateException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-public abstract class Account {
+public abstract class Account implements AccountInterface {
 
-    private int id;
-    private Client owner;
-    private Bank bank;
-    private boolean isSuspicious;
-    private AccountType accountType;
+    int id;
+    int ownerId;
+    int bankId;
     double balance;
+    boolean isSuspicious;
+    AccountType accountType;
     double limitForSuspiciousAccount;
     double interestRate;
 
-    public Account(int accountId, Client owner, Bank bank, double balance, AccountType accountType) {
-        this.id = accountId;
-        this.owner = owner;
-        this.bank = bank;
+    public Account(int id, int ownerId, int bankId, double balance, boolean isSuspicious, AccountType accountType, double limitForSuspiciousAccount, double interestRate) {
+        this.id = id;
+        this.ownerId = ownerId;
+        this.bankId = bankId;
         this.balance = balance;
-        this.isSuspicious = false;
-        this.limitForSuspiciousAccount = bank.getLimitForSuspiciousAccount();
+        this.isSuspicious = isSuspicious;
         this.accountType = accountType;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public Client getOwner() {
-        return owner;
-    }
-
-    public Bank getBank() {
-        return bank;
-    }
-
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public double getBalance() {
-        return balance;
-    }
-
-    public boolean isSuspicious() {
-        return isSuspicious;
-    }
-
-    public double getLimitForSuspiciousAccount() {
-        return limitForSuspiciousAccount;
-    }
-
-    public double getInterestRate() {
-        return interestRate;
-    }
-
-    public void checkSuspiciousActivity() {
-        if (!isSuspicious && (!owner.hasAddress() || !owner.hasPassport())) {
-            isSuspicious = true;
-        } else if (isSuspicious && (owner.hasAddress() && owner.hasPassport())) {
-            isSuspicious = false;
-        }
+        this.limitForSuspiciousAccount = limitForSuspiciousAccount;
+        this.interestRate = interestRate;
     }
 
     @Override
     public String toString() {
-        return "id: " + this.getId() + '\n' +
-                "owner: " + this.getOwner().getFirstName() + ' ' + this.getOwner().getLastName() + '\n' +
-                "bank: " + this.getBank().getName() + '\n' +
-                "type: " + this.getAccountType() + '\n' +
-                "balance: " + this.getBalance();
+        return "Account{" +
+                "id=" + id +
+                ", ownerId=" + ownerId +
+                ", bankId=" + bankId +
+                ", isSuspicious=" + isSuspicious +
+                ", accountType=" + accountType +
+                ", balance=" + balance +
+                ", limitForSuspiciousAccount=" + limitForSuspiciousAccount +
+                ", interestRate=" + interestRate +
+                '}';
     }
 
-    public void deposit(double amount) {
+    public void deposit(double amount) throws SQLException {
         if (amount < 0) {
             throw new IllegalArgumentException("Invalid amount");
         }
 
         balance += amount;
-        try {
-            TransactionDatabase.add(this.getId(), this.bank.getBankId(), amount, TransactionType.DEPOSIT, LocalDate.now());
-        } catch (SQLException e) {
-            // LOG
-            System.out.println(e.getMessage());
-        }
+        AccountDatabase.alterBalance(id, balance);
+        TransactionDatabase.add(id, bankId, amount, TransactionType.DEPOSIT, LocalDate.now());
     }
 
-    public abstract void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException;
-
-    public abstract void transfer(Account destinationAccount, double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException;
-
-    public void addInterest() {
-        double interestAmount = balance * interestRate / 100;
-        balance += interestAmount;
-
-        try {
-            TransactionDatabase.add(this.id, this.bank.getBankId(), interestAmount, TransactionType.INTEREST, LocalDate.now());
-        } catch (SQLException e) {
-            // LOG
+    public void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException, SQLException {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Invalid amount");
         }
+        if (this.isSuspicious && amount > this.limitForSuspiciousAccount) {
+            throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
+        }
+
+        balance -= amount;
+        AccountDatabase.alterBalance(id, balance);
+        TransactionDatabase.add(id, bankId, amount, TransactionType.WITHDRAW, LocalDate.now());
     }
+
+    public void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, SQLException, InsufficientFundsException, WithdrawalBeforeEndDateException {
+        var destinationAccount = AccountDatabase.findById(destinationId);
+
+        if (amount < 0) {
+            throw new IllegalArgumentException("Invalid amount");
+        }
+        if (destinationAccount == null) {
+            throw new IllegalArgumentException("Cannot find destination account");
+        }
+        if (this.isSuspicious && amount > this.limitForSuspiciousAccount) {
+            throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
+        }
+
+        balance -= amount;
+        destinationAccount.balance += amount;
+        TransactionDatabase.add(id, bankId, amount, TransactionType.TRANSFER, LocalDate.now());
+        TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVE, LocalDate.now());
+    }
+
+//    // todo перенести в банк -> банк имеет контроль и над клиентами, и над аккаунтами
+//    public void checkSuspiciousActivity() {
+//        if (!isSuspicious && (!owner.hasAddress() || !owner.hasPassport())) {
+//            isSuspicious = true;
+//        } else if (isSuspicious && (owner.hasAddress() && owner.hasPassport())) {
+//            isSuspicious = false;
+//        }
+//    }
 }

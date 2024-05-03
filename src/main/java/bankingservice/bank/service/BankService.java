@@ -12,7 +12,6 @@ import java.util.List;
 public class BankService {
 
     private Bank bank;
-    private AccountService accountService;
 
     public BankService() {
     }
@@ -25,8 +24,8 @@ public class BankService {
         this.bank = bank;
     }
 
-    public List<Account> getAccountsForClient(Client client) {
-        return AccountDatabase.getAccountsForClient(client.getClientId());
+    public List<Account> getAccounts() throws SQLException {
+        return AccountDatabase.getAccountsForBank(bank.getId());
     }
 
     public int openAccount(Client client, AccountType accountType) throws SQLException {
@@ -39,11 +38,5 @@ public class BankService {
 
     public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
         return bank.openAccount(client, accountType, yearsDuration);
-    }
-
-    public void addInterestToAllAccounts() {
-        for (var account : getBank().getAccounts()) {
-            accountService.addInterest(account);
-        }
     }
 }

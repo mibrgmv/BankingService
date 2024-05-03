@@ -49,16 +49,16 @@ public class BankDatabase {
     }
 
     public static List<Bank> getBanks() throws SQLException {
-        var products = new ArrayList<Bank>();
+        var banks = new ArrayList<Bank>();
 
-        var sql = "SELECT id, name, debit_interest_rate, savings_interest_rate, credit_commission, credit_limit, suspicious_account_limit FROM banks ORDER BY id";
+        var sql = "SELECT * FROM banks ORDER BY id";
 
         var conn =  Database.connect();
         var stmt = conn.createStatement();
         var rs = stmt.executeQuery(sql);
 
         while (rs.next()) {
-            var product = new Bank(
+            var bank = new Bank(
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getDouble("debit_interest_rate"),
@@ -66,8 +66,8 @@ public class BankDatabase {
                     rs.getDouble("credit_commission"),
                     rs.getDouble("credit_limit"),
                     rs.getDouble("suspicious_account_limit"));
-            products.add(product);
+            banks.add(bank);
         }
-        return products;
+        return banks;
     }
 }

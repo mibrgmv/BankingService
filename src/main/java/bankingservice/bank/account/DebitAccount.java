@@ -1,48 +1,32 @@
 package bankingservice.bank.account;
 
-import bankingservice.bank.bank.Bank;
-import bankingservice.bank.client.Client;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
+import bankingservice.exceptions.WithdrawalBeforeEndDateException;
 
-import java.time.LocalDate;
+import java.sql.SQLException;
 
 public class DebitAccount extends Account {
-    public DebitAccount(int accountId, Client owner, Bank bank, double balance) {
-        super(accountId, owner, bank, balance, AccountType.DEBIT);
+
+    public DebitAccount(int id, int ownerId, int bankId, double balance, boolean isSuspicious, double limitForSuspiciousAccount, double interestRate) {
+        super(id, ownerId, bankId, balance, isSuspicious, AccountType.DEBIT, limitForSuspiciousAccount, interestRate);
     }
 
     @Override
-    public void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Invalid Amount");
-        }
+    public void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException, SQLException {
         if (balance < amount) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
-        if (this.isSuspicious() && amount > this.limitForSuspiciousAccount) {
-            throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
-        }
 
-        balance -= amount;
-//        addTransaction(new Transaction(TransactionType.WITHDRAW, amount, LocalDate.now()));
+        super.withdraw(amount);
     }
 
     @Override
-    public void transfer(Account destinationAccount, double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException {
-        if (amount < 0 || destinationAccount == null) {
-            throw new IllegalArgumentException("Invalid amount or destination account");
-        }
+    public void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, SQLException, WithdrawalBeforeEndDateException {
         if (balance < amount) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
-        if (this.isSuspicious() && amount > this.limitForSuspiciousAccount) {
-            throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
-        }
 
-        balance -= amount;
-        destinationAccount.balance += amount;
-//        addTransaction(new Transaction(TransactionType.TRANSFER, amount, destinationAccount.getAccountId(), LocalDate.now()));
-//        destinationAccount.addTransaction(new Transaction(TransactionType.RECEIVE, amount, getAccountId(), LocalDate.now()));
+        super.transfer(destinationId, amount);
     }
 }

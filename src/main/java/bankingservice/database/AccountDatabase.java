@@ -1,14 +1,13 @@
 package bankingservice.database;
 
 import bankingservice.bank.account.*;
-import bankingservice.bank.bank.Bank;
-import bankingservice.bank.client.Client;
 
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AccountDatabase {
@@ -35,6 +34,18 @@ public class AccountDatabase {
         throw new SQLException("Failed to return ID");
     }
 
+    public static void alterBalance(int id, double newBalance) throws SQLException {
+        var sql = "UPDATE accounts SET balance=? WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+
+        pstmt.setDouble(1, newBalance);
+        pstmt.setInt(2, id);
+
+        pstmt.executeUpdate();
+    }
+
     public static void alterCreditLimit(int id, double creditLimit) throws SQLException {
         var sql = "UPDATE accounts SET credit_limit=? WHERE id=?";
 
@@ -59,7 +70,7 @@ public class AccountDatabase {
         pstmt.executeUpdate();
     }
 
-    public static Account findById(int id, Client client, Bank bank) throws SQLException {
+    public static Account findById(int id) throws SQLException {
         var sql = "SELECT * FROM accounts WHERE id=?";
 
         var conn =  Database.connect();
@@ -73,35 +84,156 @@ public class AccountDatabase {
                 case SAVINGS -> {
                     return new SavingsAccount(
                             rs.getInt("id"),
-                            client,
-                            bank,
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
                             rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
                             rs.getDate("end_date").toLocalDate()
                     );
                 }
                 case DEBIT -> {
                     return new DebitAccount(
                             rs.getInt("id"),
-                            client,
-                            bank,
-                            rs.getDouble("balance")
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate")
                     );
                 }
                 case CREDIT -> {
-                    return new CreditAccount(rs.getInt("id"),
-                            client,
-                            bank,
+                    return new CreditAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
                             rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
                             rs.getDouble("credit_limit")
                     );
                 }
-                default -> throw new IllegalStateException("Unexpected value: " + accountType);
             }
         }
         return null;
     }
 
-    public static List<Account> getAccountsForClient(int clientId) {
-        return null;
+    public static List<Account> getAccountsForClient(int clientId) throws SQLException {
+        var accounts = new ArrayList<Account>();
+
+        var sql = "SELECT * FROM accounts WHERE owner_id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        pstmt.setInt(1, clientId);
+
+        var rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            AccountType accountType = AccountType.valueOf(rs.getString("account_type"));
+            Account account;
+            switch (accountType) {
+                case SAVINGS -> {
+                    account = new SavingsAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
+                            rs.getDate("end_date").toLocalDate()
+                    );
+                    accounts.add(account);
+                }
+                case DEBIT -> {
+                    account = new DebitAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate")
+                    );
+                    accounts.add(account);
+                }
+                case CREDIT -> {
+                    account = new CreditAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
+                            rs.getDouble("credit_limit")
+                    );
+                    accounts.add(account);
+                }
+            }
+        }
+        return accounts;
+    }
+
+    public static List<Account> getAccountsForBank(int bankId) throws SQLException {
+        var accounts = new ArrayList<Account>();
+
+        var sql = "SELECT * FROM accounts WHERE bank_id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        pstmt.setInt(1, bankId);
+
+        var rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            AccountType accountType = AccountType.valueOf(rs.getString("account_type"));
+            Account account;
+            switch (accountType) {
+                case SAVINGS -> {
+                    account = new SavingsAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
+                            rs.getDate("end_date").toLocalDate()
+                    );
+                    accounts.add(account);
+                }
+                case DEBIT -> {
+                    account = new DebitAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate")
+                    );
+                    accounts.add(account);
+                }
+                case CREDIT -> {
+                    account = new CreditAccount(
+                            rs.getInt("id"),
+                            rs.getInt("owner_id"),
+                            rs.getInt("bank_id"),
+                            rs.getDouble("balance"),
+                            rs.getBoolean("is_suspicious"),
+                            rs.getDouble("limit_for_suspicious"),
+                            rs.getDouble("interest_rate"),
+                            rs.getDouble("credit_limit")
+                    );
+                    accounts.add(account);
+                }
+            }
+        }
+        return accounts;
     }
 }

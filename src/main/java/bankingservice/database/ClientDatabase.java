@@ -24,7 +24,7 @@ public class ClientDatabase {
     }
 
     public static Client findById(int id) throws SQLException {
-        var sql = "SELECT id, first_name, last_name, date_of_birth FROM clients WHERE id=?";
+        var sql = "SELECT * FROM clients WHERE id=?";
 
         try (var conn =  Database.connect();
              var pstmt = conn.prepareStatement(sql)) {
@@ -41,5 +41,16 @@ public class ClientDatabase {
             }
         }
         return null;
+    }
+
+    public static void delete(int id) throws SQLException {
+        var sql = "DELETE FROM clients WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        pstmt.setInt(1, id);
+
+        pstmt.executeUpdate();
     }
 }

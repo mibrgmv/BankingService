@@ -1,11 +1,10 @@
 package bankingservice;
 
-import bankingservice.bank.service.AccountService;
+import bankingservice.bank.account.Account;
+import bankingservice.bank.bank.Bank;
 import bankingservice.bank.service.BankService;
 import bankingservice.database.AccountDatabase;
 import bankingservice.database.BankDatabase;
-import bankingservice.database.ClientDatabase;
-import bankingservice.database.TransactionDatabase;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.sql.SQLException;
@@ -15,21 +14,16 @@ public class BankingServiceApplication {
 
 	public static void main(String[] args) {
         try {
-            var bank = BankDatabase.findById(1);
-			System.out.println(bank.getName());
+            Bank b = BankDatabase.findById(1);
+            BankService bs = new BankService();
+            bs.setBank(b);
 
-            var client = ClientDatabase.findById(1);
-            System.out.println(client.getFirstName() + client.getLastName());
-
-            var bankService = new BankService();
-            bankService.setBank(bank);
-
-            var account = AccountDatabase.findById(26, client, bank);
-            var accountService = new AccountService(bank);
-            accountService.deposit(account, 1000);
+            Account a = AccountDatabase.findById(26);
+            a.deposit(1000);
+            System.out.println(a);
 
         } catch (SQLException e) {
-			System.out.println(e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 }
