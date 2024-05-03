@@ -12,7 +12,7 @@ import java.sql.SQLException;
 @SpringBootApplication
 public class BankingServiceApplication {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) { //
         try {
             Bank b = BankDatabase.findById(1);
             BankService bs = new BankService();
