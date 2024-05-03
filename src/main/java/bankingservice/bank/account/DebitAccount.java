@@ -13,16 +13,6 @@ public class DebitAccount extends Account {
     }
 
     @Override
-    public void deposit(double amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Invalid Amount");
-        }
-
-        balance += amount;
-//        addTransaction(new Transaction(TransactionType.DEPOSIT, amount, LocalDate.now()));
-    }
-
-    @Override
     public void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException {
         if (amount < 0) {
             throw new IllegalArgumentException("Invalid Amount");
@@ -54,12 +44,5 @@ public class DebitAccount extends Account {
         destinationAccount.balance += amount;
 //        addTransaction(new Transaction(TransactionType.TRANSFER, amount, destinationAccount.getAccountId(), LocalDate.now()));
 //        destinationAccount.addTransaction(new Transaction(TransactionType.RECEIVE, amount, getAccountId(), LocalDate.now()));
-    }
-
-    @Override
-    public void addInterest() {
-        double interestAmount = balance * interestRate / 100;
-        balance += interestAmount;
-//        addTransaction(new Transaction(TransactionType.INTEREST, interestAmount, LocalDate.now()));
     }
 }

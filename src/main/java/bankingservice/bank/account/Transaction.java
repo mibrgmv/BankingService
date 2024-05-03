@@ -3,61 +3,46 @@ package bankingservice.bank.account;
 import java.time.LocalDate;
 
 public class Transaction {
-
-    private int transactionId;
-    private TransactionType transactionType;
+    // todo
+    // 1) сделать рекордом
+    // 2) сделать операции односторонними (без destination acc/bank)
+    // 3) если надо отменить операцию трансфера – отменяем две операции (отправки и получения)
+    private int id;
+    private int accountId;
+    private int bankId;
     private double amount;
-    private Integer destinationAccountId;
+    private TransactionType transactionType;
     private LocalDate date;
+    private boolean isUndo;
 
-    public Transaction(TransactionType transactionType, double amount, LocalDate date) {
-        this.transactionId = 0;
-        this.transactionType = transactionType;
+    public Transaction(int id, int accountId, int bankId, double amount, TransactionType transactionType, LocalDate date, boolean isUndo) {
+        this.id = id;
+        this.accountId = accountId;
+        this.bankId = bankId;
         this.amount = amount;
-        this.destinationAccountId = null;
-        this.date = date;
-    }
-
-    public Transaction(TransactionType transactionType, double amount, int destinationAccountId, LocalDate date) {
-        this.transactionId = 0;
         this.transactionType = transactionType;
-        this.amount = amount;
-        this.destinationAccountId = destinationAccountId;
         this.date = date;
+        this.isUndo = isUndo;
     }
 
-    public int getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(int transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public TransactionType getTransactionType() {
-        return transactionType;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public Integer getDestinationAccountId() {
-        return destinationAccountId;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
+    public int getId() { return id; }
+    public int getAccountId() { return accountId; }
+    public int getBankId() { return bankId; }
+    public double getAmount() { return amount; }
+    public TransactionType getTransactionType() { return transactionType; }
+    public LocalDate getDate() { return date; }
+    public boolean isUndo() { return isUndo; }
 
     @Override
     public String toString() {
         return "Transaction{" +
-                "transactionId=" + transactionId +
-                ", transactionType=" + transactionType +
+                "id=" + id +
+                ", accountId=" + accountId +
+                ", bankId=" + bankId +
                 ", amount=" + amount +
-                ", destinationAccountId=" + destinationAccountId +
+                ", transactionType=" + transactionType +
                 ", date=" + date +
+                ", isUndo=" + isUndo +
                 '}';
     }
 }

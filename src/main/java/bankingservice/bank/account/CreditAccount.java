@@ -2,9 +2,11 @@ package bankingservice.bank.account;
 
 import bankingservice.bank.bank.Bank;
 import bankingservice.bank.client.Client;
+import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class CreditAccount extends Account {
@@ -18,16 +20,6 @@ public class CreditAccount extends Account {
 
     public double getCreditLimit() {
         return creditLimit;
-    }
-
-    @Override
-    public void deposit(double amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Invalid amount");
-        }
-
-        balance += amount;
-//        addTransaction(new Transaction(TransactionType.DEPOSIT, amount, LocalDate.now()));
     }
 
     @Override
@@ -60,14 +52,17 @@ public class CreditAccount extends Account {
 
         balance -= amount;
         destinationAccount.balance += amount;
-//        addTransaction(new Transaction(TransactionType.TRANSFER, amount, destinationAccount.getAccountId(), LocalDate.now()));
-//        destinationAccount.addTransaction(new Transaction(TransactionType.RECEIVE, amount, getAccountId(), LocalDate.now()));
     }
 
     @Override
     public void addInterest() {
         double interestAmount = -balance * interestRate / 100;
         balance += interestAmount;
-//        addTransaction(new Transaction(TransactionType.INTEREST, interestAmount, LocalDate.now()));
+
+        try {
+            TransactionDatabase.add(this.getId(), this.getBank().getBankId(), interestAmount, TransactionType.INTEREST, LocalDate.now());
+        } catch (SQLException e) {
+            // TODO LOG
+        }
     }
 }
