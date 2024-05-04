@@ -3,6 +3,10 @@ package bankingservice.bank.bank;
 import bankingservice.bank.account.*;
 import bankingservice.bank.client.Client;
 import bankingservice.database.AccountDatabase;
+import bankingservice.database.ClientDatabase;
+import bankingservice.exceptions.InsufficientFundsException;
+import bankingservice.exceptions.SuspiciousLimitExceedingException;
+import bankingservice.exceptions.WithdrawalBeforeEndDateException;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -33,18 +37,6 @@ public class Bank {
 
     public String getName() {
         return name;
-    }
-
-    public double getCommissionForCreditAccount() {
-        return commissionForCreditAccount;
-    }
-
-    public double getInterestRateForDebitAccount() {
-        return interestRateForDebitAccount;
-    }
-
-    public double getInterestRatesForSavingsAccount() {
-        return interestRatesForSavingsAccount;
     }
 
     public double getLimitForSuspiciousAccount() {
@@ -92,6 +84,60 @@ public class Bank {
                 return commissionForCreditAccount;
             default:
                 throw new IllegalArgumentException("Неизвестный тип счета: " + accountType);
+        }
+    }
+
+    public void deposit(int accountId, double amount) throws SQLException, SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException {
+        var account = AccountDatabase.findById(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("Account does not exist");
+        }
+        if (account.getBankId() != this.id) {
+            throw new IllegalArgumentException("Account not found in bank");
+        }
+
+        account.deposit(amount);
+    }
+
+    public void withdraw(int accountId, double amount) throws SQLException, SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException {
+        var account = AccountDatabase.findById(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("Account does not exist");
+        }
+        if (account.getBankId() != this.id) {
+            throw new IllegalArgumentException("Account not found in bank");
+        }
+        if (checkSuspicious(accountId) && amount > limitForSuspiciousAccount) {
+            throw new SuspiciousLimitExceedingException("Cannot withdraw from suspicious account");
+        }
+
+        account.withdraw(amount);
+    }
+
+    public boolean checkSuspicious(int accountId) throws SQLException {
+        var account = AccountDatabase.findById(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("Account does not exist");
+        }
+        if (account.getBankId() != this.id) {
+            throw new IllegalArgumentException("Account not found in bank");
+        }
+        var client = ClientDatabase.findById(account.getOwnerId());
+        if (client == null) {
+            throw new IllegalArgumentException("Cannot find owner of account");
+        }
+
+        if (account.isSuspicious() && client.address() != null && !client.address().isEmpty() && client.passportNumber() != null && !client.passportNumber().isEmpty()) {
+            AccountDatabase.alterSuspicious(accountId, false);
+            return false;
+        }
+        return account.isSuspicious();
+    }
+
+    public void addInterest() throws SQLException {
+        var accounts = AccountDatabase.getAccountsForBank(this.id);
+        for (var account : accounts) {
+            account.addInterest();
         }
     }
 }

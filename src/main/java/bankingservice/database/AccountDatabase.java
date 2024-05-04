@@ -46,6 +46,18 @@ public class AccountDatabase {
         pstmt.executeUpdate();
     }
 
+    public static void alterSuspicious(int id, boolean isSuspicious) throws SQLException {
+        var sql = "UPDATE accounts SET is_suspicious=? WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+
+        pstmt.setBoolean(1, isSuspicious);
+        pstmt.setInt(2, id);
+
+        pstmt.executeUpdate();
+    }
+
     public static void alterCreditLimit(int id, double creditLimit) throws SQLException {
         var sql = "UPDATE accounts SET credit_limit=? WHERE id=?";
 

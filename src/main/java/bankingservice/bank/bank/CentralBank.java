@@ -1,8 +1,6 @@
 package bankingservice.bank.bank;
 
-
 import bankingservice.database.BankDatabase;
-
 import java.sql.SQLException;
 import java.util.List;
 

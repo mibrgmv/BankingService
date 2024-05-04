@@ -8,9 +8,11 @@ import java.sql.SQLException;
 
 public interface AccountInterface {
 
-    public void deposit(double amount) throws SQLException;
+    void deposit(double amount) throws SQLException;
 
-    public void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException, SQLException;
+    void withdraw(double amount) throws SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException, SQLException;
 
-    public void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, SQLException, InsufficientFundsException, WithdrawalBeforeEndDateException;
+    void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, SQLException, InsufficientFundsException, WithdrawalBeforeEndDateException;
+
+    void addInterest() throws SQLException;
 }

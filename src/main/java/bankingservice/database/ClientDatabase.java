@@ -45,6 +45,29 @@ public class ClientDatabase {
         return null;
     }
 
+    public static Client findByNameAndSurname(String name, String surname) throws SQLException {
+        var sql = "SELECT * FROM clients WHERE first_name=? AND last_name=?";
+
+        try (var conn =  Database.connect();
+             var pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, surname);
+            var rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return new Client(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getDate("date_of_birth").toLocalDate(),
+                        rs.getString("address"),
+                        rs.getString("passport")
+                );
+            }
+        }
+        return null;
+    }
+
     public static void delete(int id) throws SQLException {
         var sql = "DELETE FROM clients WHERE id=?";
 

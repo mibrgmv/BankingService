@@ -32,6 +32,18 @@ public abstract class Account implements AccountInterface {
         this.interestRate = interestRate;
     }
 
+    public int getOwnerId() {
+        return ownerId;
+    }
+
+    public int getBankId() {
+        return bankId;
+    }
+
+    public boolean isSuspicious() {
+        return isSuspicious;
+    }
+
     @Override
     public String toString() {
         return "Account{" +
@@ -86,6 +98,13 @@ public abstract class Account implements AccountInterface {
         destinationAccount.balance += amount;
         TransactionDatabase.add(id, bankId, amount, TransactionType.TRANSFER, LocalDate.now());
         TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVE, LocalDate.now());
+    }
+
+    public void addInterest() throws SQLException {
+        double interestAmount = balance * interestRate;
+        balance += interestAmount;
+        AccountDatabase.alterBalance(id, balance);
+        TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
     }
 
 //    // todo перенести в банк -> банк имеет контроль и над клиентами, и над аккаунтами
