@@ -49,15 +49,12 @@ public class Bank {
 
     @Override
     public String toString() {
-        return "Bank{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", commissionForCreditAccount=" + commissionForCreditAccount +
-                ", interestRateForDebitAccount=" + interestRateForDebitAccount +
-                ", interestRatesForSavingsAccount=" + interestRatesForSavingsAccount +
+        return id + ". " + name +
+                ": creditCommission=" + commissionForCreditAccount +
+                ", debitInterestRate=" + interestRateForDebitAccount +
+                ", savingInterestRate=" + interestRatesForSavingsAccount +
                 ", creditLimit=" + creditLimit +
-                ", limitForSuspiciousAccount=" + limitForSuspiciousAccount +
-                '}';
+                ", suspiciousLimit=" + limitForSuspiciousAccount;
     }
 
     public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
