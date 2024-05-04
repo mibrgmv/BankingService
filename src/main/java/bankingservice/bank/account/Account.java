@@ -101,10 +101,12 @@ public abstract class Account implements AccountInterface {
     }
 
     public void addInterest() throws SQLException {
-        double interestAmount = balance * interestRate;
-        balance += interestAmount;
-        AccountDatabase.alterBalance(id, balance);
-        TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
+        if (balance > 0) {
+            double interestAmount = balance * interestRate / 100;
+            balance += interestAmount;
+            AccountDatabase.alterBalance(id, balance);
+            TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
+        }
     }
 
 //    // todo перенести в банк -> банк имеет контроль и над клиентами, и над аккаунтами

@@ -27,5 +27,11 @@ public class CentralBank {
         }
         BankDatabase.add(name, debitInterestRate, savingsInterestRate, creditCommission, creditLimit, suspiciousAccountLimit);
     }
+
+    public void addInterest() throws SQLException {
+        for (var bank : getBanks()) {
+            bank.addInterest();
+        }
+    }
 }
 

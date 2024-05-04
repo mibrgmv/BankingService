@@ -10,11 +10,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class ConsoleUI {
+public class ConsoleUI implements UI {
 
     private Scanner scanner = new Scanner(System.in);
     private BankService bankService;
@@ -30,7 +31,7 @@ public class ConsoleUI {
 
     public void run() {
         while (true) {
-            System.out.println("select app mode: (1-user; 2-central bank; enter-exit)");
+            System.out.println("select app mode: (1-user; 2-central bank; 'enter'-exit)");
             String mode = scanner.nextLine();
             if (mode.isEmpty()) {
                 return;
@@ -43,7 +44,7 @@ public class ConsoleUI {
                     runCentralBankMode();
                     break;
                 default:
-                    System.out.println("try again...");
+                    System.out.println("try again...\n");
             }
         }
     }
@@ -81,44 +82,41 @@ public class ConsoleUI {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        if (client == null) {
-            System.out.println("cannot find client.\n");
+        if (client != null) {
+            userMenu();
         } else {
-            loggedInScenario();
+            System.out.println("cannot find client.\n");
         }
     }
 
     private void createAccountScenario() {
-        while (true) {
-            System.out.println("to create an account, enter your");
-            System.out.print("first name: ");
-            String name = scanner.next();
-            System.out.print("last name: ");
-            String surname = scanner.next();
-            System.out.print("date of birth (yyyy-MM-dd): ");
-            String dob = scanner.next();
-            try {
-                dob = String.valueOf(LocalDate.parse(dob, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-            } catch (DateTimeParseException e) {
-                System.out.println("incorrect date format. try again.");
-                break;
-            }
-            try {
-                ClientDatabase.add(name, surname, dob);
-                loggedInScenario();
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-                break;
-            }
+        System.out.println("to create an account, enter your");
+        System.out.print("first name: ");
+        String name = scanner.nextLine();
+        System.out.print("last name: ");
+        String surname = scanner.nextLine();
+        System.out.print("date of birth (yyyy-MM-dd): ");
+        String dob = scanner.nextLine();
+        try {
+            dob = String.valueOf(LocalDate.parse(dob, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        } catch (DateTimeParseException e) {
+            System.out.println("incorrect date format. try again.\n");
+            return;
+        }
+        try {
+            ClientDatabase.add(name, surname, dob);
+            userMenu();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    private void loggedInScenario() {
+    private void userMenu() {
         System.out.println("successful login");
     }
 
     private void runCentralBankMode() {
-        System.out.println("enter password");
+        System.out.print("enter password: ");
         String password = scanner.nextLine();
         if (Objects.equals(password, centralBankPassword)) {
             centralBankMenu();
@@ -132,6 +130,7 @@ public class ConsoleUI {
             System.out.println("--central bank options-press 'enter' to return--");
             System.out.println("1-display all banks");
             System.out.println("2-create a bank");
+            System.out.println("3-add interest to all accounts");
             String option = scanner.nextLine();
             if (option.isEmpty()) {
                 return;
@@ -156,6 +155,13 @@ public class ConsoleUI {
                         System.out.println(e.getMessage());
                     } catch (InputMismatchException e) {
                         System.out.println("incorrect data format");
+                    }
+                    break;
+                case "3":
+                    try {
+                        centralBank.addInterest();
+                    } catch (SQLException e) {
+                        System.out.println("an unexpected error occurred");
                     }
                     break;
                 default:

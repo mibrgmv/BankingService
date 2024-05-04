@@ -43,7 +43,7 @@ public class CreditAccount extends Account {
     @Override
     public void addInterest() throws SQLException {
         if (balance < 0) {
-            double interestAmount = balance * interestRate;
+            double interestAmount = balance * interestRate / 100;
             balance -= interestAmount;
             AccountDatabase.alterBalance(id, balance);
             TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
