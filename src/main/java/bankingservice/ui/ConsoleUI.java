@@ -91,18 +91,44 @@ public class ConsoleUI implements UI {
 
     private void createAccountScenario() {
         System.out.println("to create an account, enter your");
-        System.out.print("first name: ");
-        String name = scanner.nextLine();
-        System.out.print("last name: ");
-        String surname = scanner.nextLine();
-        System.out.print("date of birth (yyyy-MM-dd): ");
-        String dob = scanner.nextLine();
-        try {
-            dob = String.valueOf(LocalDate.parse(dob, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        } catch (DateTimeParseException e) {
-            System.out.println("incorrect date format. try again.\n");
-            return;
-        }
+        String name, surname, dob;
+
+        do {
+            System.out.print("first name: ");
+            name = scanner.nextLine();
+            if (name.isEmpty()) {
+                return;
+            }
+            if (!name.matches("[A-Z][a-z]+")) {
+                System.out.println("incorrect name format.\n");;
+            }
+        } while (!name.matches("[A-Z][a-z]+"));
+
+        do {
+            System.out.print("last name: ");
+            surname = scanner.nextLine();
+            if (surname.isEmpty()) {
+                return;
+            }
+            if (!surname.matches("[A-Z][a-z]+")) {
+                System.out.println("incorrect name format.\n");;
+            }
+        } while (!surname.matches("[A-Z][a-z]+"));
+
+        do {
+            System.out.print("date of birth (yyyy-MM-dd): ");
+            dob = scanner.nextLine();
+            if (dob.isEmpty()) {
+                return;
+            }
+            try {
+                dob = String.valueOf(LocalDate.parse(dob, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                break;
+            } catch (DateTimeParseException | IllegalArgumentException e) {
+                System.out.println("incorrect date format.\n");
+            }
+        } while (true);
+
         try {
             ClientDatabase.add(name, surname, dob);
             userMenu();
