@@ -47,6 +47,19 @@ public class Bank {
         return creditLimit;
     }
 
+    @Override
+    public String toString() {
+        return "Bank{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", commissionForCreditAccount=" + commissionForCreditAccount +
+                ", interestRateForDebitAccount=" + interestRateForDebitAccount +
+                ", interestRatesForSavingsAccount=" + interestRatesForSavingsAccount +
+                ", creditLimit=" + creditLimit +
+                ", limitForSuspiciousAccount=" + limitForSuspiciousAccount +
+                '}';
+    }
+
     public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
         int id;
         switch (accountType) {

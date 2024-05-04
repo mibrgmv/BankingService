@@ -22,6 +22,9 @@ public class CentralBank {
     }
 
     public void registerBank(String name, double debitInterestRate, double savingsInterestRate, double creditCommission, double creditLimit, double suspiciousAccountLimit) throws SQLException {
+        if (name.isEmpty() || name.isBlank() || debitInterestRate < 0 || savingsInterestRate < 0 || creditCommission < 0 || creditLimit < 0 || suspiciousAccountLimit < 0) {
+            throw new IllegalArgumentException("Blank or negative arguments");
+        }
         BankDatabase.add(name, debitInterestRate, savingsInterestRate, creditCommission, creditLimit, suspiciousAccountLimit);
     }
 }

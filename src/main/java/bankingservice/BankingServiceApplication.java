@@ -9,6 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BankingServiceApplication {
 
 	public static void main(String[] args) {
-        new ConsoleUI(new BankService(), new ClientService()).run();
+        new ConsoleUI(new BankService(), new ClientService(), "1234").run();
     }
 }
