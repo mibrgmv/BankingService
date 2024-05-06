@@ -4,13 +4,14 @@ import bankingservice.bank.bank.CentralBank;
 import bankingservice.bank.client.Client;
 import bankingservice.bank.service.BankService;
 import bankingservice.bank.service.ClientService;
+import bankingservice.database.AccountDatabase;
 import bankingservice.database.ClientDatabase;
+import bankingservice.database.TransactionDatabase;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.Objects;
 import java.util.Scanner;
@@ -83,7 +84,7 @@ public class ConsoleUI implements UI {
             throw new RuntimeException(e);
         }
         if (client != null) {
-            userMenu();
+            userMenu(client.id());
         } else {
             System.out.println("cannot find client.\n");
         }
@@ -130,15 +131,78 @@ public class ConsoleUI implements UI {
         } while (true);
 
         try {
-            ClientDatabase.add(name, surname, dob);
-            userMenu();
+            int id = ClientDatabase.add(name, surname, dob);
+            userMenu(id);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void userMenu() {
-        System.out.println("successful login");
+    private void userMenu(int userId) {
+        Client user;
+        try {
+            user = ClientDatabase.findById(userId);
+            System.out.printf("\nwelcome %s %s!\n", user.firstName(), user.lastName());
+        } catch (SQLException e) {
+            System.out.println("could not access client profile.\n");
+            return;
+        }
+        while (true) {
+            try {
+                System.out.println("available accounts:");
+                var accounts = AccountDatabase.getAccountsForClient(userId);
+                int c = 0;
+                for (var account : accounts) {
+                    System.out.print(++c + ". " + account.toString() + '\n');
+                }
+                System.out.println("select account: ");
+                String s = scanner.nextLine();
+                if (s.isEmpty()) {
+                    return;
+                }
+                int option = Integer.parseInt(s);
+                if (option > 0 && option <= accounts.size()) {
+                    accountManagement(accounts.get(c-1).getId());
+                }
+            } catch (InputMismatchException  | NumberFormatException ignored) {
+                System.out.println("invalid input.\n");
+            } catch (SQLException e) {
+                System.out.println("cannot access accounts.\n");
+            }
+        }
+    }
+
+    public void accountManagement(int accountId) {
+        System.out.println("select operation: ");
+        System.out.println("1-deposit");
+        System.out.println("2-withdraw");
+        System.out.println("3-transfer");
+        System.out.println("4-view history");
+        do {
+            System.out.println("option: ");
+            String option = scanner.nextLine();
+            if (option.isEmpty()) {
+                return;
+            }
+            switch (option) {
+                case "1":
+                    System.out.println("select amount for deposit: ");
+                    break;
+                case "4":
+                    try {
+                        var transactions = TransactionDatabase.getTransactionsForClient(accountId);
+                        int c = 0;
+                        for (var transaction : transactions) {
+                            System.out.print(++c + ". " + transaction + '\n');
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("error loading transaction history.\n");
+                    }
+                    break;
+                default:
+                    System.out.println("invalid input.\n");
+            }
+        } while (true);
     }
 
     private void runCentralBankMode() {
@@ -169,7 +233,6 @@ public class ConsoleUI implements UI {
                         for (var bank : banks) {
                             System.out.println(bank);
                         }
-                        System.out.println();
                     } catch (SQLException e) {
                         System.out.println(e.getMessage());
                     }

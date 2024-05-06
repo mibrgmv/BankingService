@@ -8,19 +8,20 @@ import java.sql.Statement;
 
 public class ClientDatabase {
 
-    public static void add(String name, String surname, String dateOfBirth) throws SQLException {
+    public static int add(String name, String surname, String dateOfBirth) throws SQLException {
         var sql = "INSERT INTO clients(first_name, last_name, date_of_birth)"
                 + "VALUES(?,?,?)";
 
-        try (var conn =  Database.connect();
-             var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            pstmt.setString(1, name);
-            pstmt.setString(2, surname);
-            pstmt.setDate(3, Date.valueOf(dateOfBirth));
+        pstmt.setString(1, name);
+        pstmt.setString(2, surname);
+        pstmt.setDate(3, Date.valueOf(dateOfBirth));
 
-            pstmt.executeUpdate();
-        }
+        var rs = pstmt.executeQuery();
+
+        return (rs.next()) ? rs.getInt("id") : -1;
     }
 
     public static Client findById(int id) throws SQLException {

@@ -32,6 +32,10 @@ public abstract class Account implements AccountInterface {
         this.interestRate = interestRate;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public int getOwnerId() {
         return ownerId;
     }
