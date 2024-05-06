@@ -275,7 +275,54 @@ public class ConsoleUI implements UI {
     }
 
     public void clientTransferScenario(int accountId) {
+        String input;
+        int amount, id;
 
+        do {
+            do {
+                System.out.print("enter amount to transfer: ");
+                input = scanner.nextLine();
+                if (input.isEmpty()) {
+                    return;
+                }
+                try {
+                    amount = Integer.parseInt(input);
+                    break;
+                } catch (NullPointerException | NumberFormatException e) {
+                    System.out.println("invalid amount.\n");
+                }
+            } while (true);
+
+            do {
+                System.out.print("enter recipient account id: ");
+                input = scanner.nextLine();
+                if (input.isEmpty()) {
+                    return;
+                }
+                try {
+                    id = Integer.parseInt(input);
+                    break;
+                } catch (NullPointerException | NumberFormatException e) {
+                    System.out.println("invalid id.\n");
+                }
+            } while (true);
+
+            try {
+                Account account = AccountDatabase.findById(accountId);
+                Objects.requireNonNull(account).transfer(id, amount);
+                System.out.println("transfer successful.\n");
+                return;
+            } catch (SuspiciousLimitExceedingException e) {
+                System.out.println("account suspicious. cannot transfer above limit.\n");
+            } catch (SQLException e) {
+                System.out.println("internal transfer error.\n");
+            } catch (InsufficientFundsException e) {
+                System.out.println("insufficient funds.\n");
+            } catch (WithdrawalBeforeEndDateException e) {
+                System.out.println("cannot transfer from savings account before expiry date.\n ");
+                return;
+            }
+        } while (true);
     }
 
     private void runCentralBankMode() {
@@ -316,14 +363,14 @@ public class ConsoleUI implements UI {
                     } catch (SQLException | IllegalArgumentException e) {
                         System.out.println(e.getMessage());
                     } catch (InputMismatchException e) {
-                        System.out.println("incorrect data format");
+                        System.out.println("incorrect data format.");
                     }
                     break;
                 case "3":
                     try {
                         centralBank.addInterest();
                     } catch (SQLException e) {
-                        System.out.println("an unexpected error occurred");
+                        System.out.println("an unexpected error occurred.");
                     }
                     break;
                 default:

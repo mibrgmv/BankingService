@@ -5,7 +5,7 @@ public enum TransactionType {
     DEPOSIT("Депозит"),
     WITHDRAWAL("Снятие"),
     TRANSFER("Перевод"),
-    RECEIVE("Получение"),
+    RECEIVING("Получение"),
     INTEREST("Проценты");
 
     private final String name;

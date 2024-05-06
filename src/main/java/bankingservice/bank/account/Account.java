@@ -103,8 +103,10 @@ public abstract class Account implements AccountInterface {
 
         balance -= amount;
         destinationAccount.balance += amount;
+        AccountDatabase.alterBalance(id, balance);
+        AccountDatabase.alterBalance(destinationAccount.id, destinationAccount.balance);
         TransactionDatabase.add(id, bankId, amount, TransactionType.TRANSFER, LocalDate.now());
-        TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVE, LocalDate.now());
+        TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVING, LocalDate.now());
     }
 
     public void addInterest() throws SQLException {
