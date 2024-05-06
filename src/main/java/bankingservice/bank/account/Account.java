@@ -79,10 +79,13 @@ public abstract class Account implements AccountInterface {
         if (this.isSuspicious && amount > this.limitForSuspiciousAccount) {
             throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
         }
+        if (this.accountType != AccountType.CREDIT && amount > balance) {
+            throw new InsufficientFundsException("Insufficient funds");
+        }
 
         balance -= amount;
         AccountDatabase.alterBalance(id, balance);
-        TransactionDatabase.add(id, bankId, amount, TransactionType.WITHDRAW, LocalDate.now());
+        TransactionDatabase.add(id, bankId, amount, TransactionType.WITHDRAWAL, LocalDate.now());
     }
 
     public void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, SQLException, InsufficientFundsException, WithdrawalBeforeEndDateException {

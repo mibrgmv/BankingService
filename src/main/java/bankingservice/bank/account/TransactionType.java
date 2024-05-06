@@ -3,7 +3,7 @@ package bankingservice.bank.account;
 public enum TransactionType {
 
     DEPOSIT("Депозит"),
-    WITHDRAW("Снятие"),
+    WITHDRAWAL("Снятие"),
     TRANSFER("Перевод"),
     RECEIVE("Получение"),
     INTEREST("Проценты");

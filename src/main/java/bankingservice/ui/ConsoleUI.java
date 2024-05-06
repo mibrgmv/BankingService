@@ -1,5 +1,6 @@
 package bankingservice.ui;
 
+import bankingservice.bank.account.Account;
 import bankingservice.bank.bank.CentralBank;
 import bankingservice.bank.client.Client;
 import bankingservice.bank.service.BankService;
@@ -7,12 +8,16 @@ import bankingservice.bank.service.ClientService;
 import bankingservice.database.AccountDatabase;
 import bankingservice.database.ClientDatabase;
 import bankingservice.database.TransactionDatabase;
+import bankingservice.exceptions.InsufficientFundsException;
+import bankingservice.exceptions.SuspiciousLimitExceedingException;
+import bankingservice.exceptions.WithdrawalBeforeEndDateException;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -73,9 +78,9 @@ public class ConsoleUI implements UI {
     }
 
     private void loginScenario() {
-        System.out.println("first name: ");
+        System.out.print("first name: ");
         String name = scanner.nextLine();
-        System.out.println("last name: ");
+        System.out.print("last name: ");
         String surname = scanner.nextLine();
         Client client;
         try {
@@ -147,46 +152,59 @@ public class ConsoleUI implements UI {
             System.out.println("could not access client profile.\n");
             return;
         }
-        while (true) {
+        do {
+            System.out.println("available accounts:");
+            List<Account> accounts;
             try {
-                System.out.println("available accounts:");
-                var accounts = AccountDatabase.getAccountsForClient(userId);
-                int c = 0;
-                for (var account : accounts) {
-                    System.out.print(++c + ". " + account.toString() + '\n');
-                }
-                System.out.println("select account: ");
-                String s = scanner.nextLine();
-                if (s.isEmpty()) {
-                    return;
-                }
-                int option = Integer.parseInt(s);
-                if (option > 0 && option <= accounts.size()) {
-                    accountManagement(accounts.get(c-1).getId());
-                }
-            } catch (InputMismatchException  | NumberFormatException ignored) {
-                System.out.println("invalid input.\n");
+                accounts = AccountDatabase.getAccountsForClient(userId);
             } catch (SQLException e) {
-                System.out.println("cannot access accounts.\n");
+                System.out.println("error. could not get accounts\n");
+                return;
             }
-        }
+            int c = 0;
+            for (var account : accounts) {
+                System.out.print(++c + ". " + account.toString() + '\n');
+            }
+            System.out.print("select account: ");
+            String s = scanner.nextLine();
+            if (s.isEmpty()) {
+                return;
+            }
+            int option;
+            try {
+                option = Integer.parseInt(s);
+                if (option > 0 && option <= accounts.size()) {
+                    accountManagement(accounts.get(option - 1).getId());
+                } else {
+                    System.out.println("option out of range.\n");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("incorrect format.\n");
+            }
+        } while (true);
     }
 
     public void accountManagement(int accountId) {
-        System.out.println("select operation: ");
-        System.out.println("1-deposit");
-        System.out.println("2-withdraw");
-        System.out.println("3-transfer");
-        System.out.println("4-view history");
         do {
-            System.out.println("option: ");
+            System.out.println("select operation: ");
+            System.out.println("1-deposit");
+            System.out.println("2-withdraw");
+            System.out.println("3-transfer");
+            System.out.println("4-view history");
+            System.out.print("option: ");
             String option = scanner.nextLine();
             if (option.isEmpty()) {
                 return;
             }
             switch (option) {
                 case "1":
-                    System.out.println("select amount for deposit: ");
+                    clientDepositScenario(accountId);
+                    break;
+                case "2":
+                    clientWithdrawScenario(accountId);
+                    break;
+                case "3":
+                    clientTransferScenario(accountId);
                     break;
                 case "4":
                     try {
@@ -200,9 +218,64 @@ public class ConsoleUI implements UI {
                     }
                     break;
                 default:
-                    System.out.println("invalid input.\n");
+                    System.out.println("invalid input. try again...\n");
             }
         } while (true);
+    }
+
+    public void clientDepositScenario(int accountId) {
+        do {
+            System.out.print("enter amount to deposit: ");
+            String input = scanner.nextLine();
+            if (input.isEmpty()) {
+                return;
+            }
+            try {
+                int amount = Integer.parseInt(input);
+                Account account = AccountDatabase.findById(accountId);
+                Objects.requireNonNull(account).deposit(amount);
+                System.out.println("deposit successful.\n");
+                return;
+            } catch (IllegalArgumentException e) {
+                System.out.println("invalid format.\n");
+            } catch (SQLException | NullPointerException e) {
+                System.out.println("error. cannot retrieve account data.\n");
+            }
+        } while (true);
+    }
+
+    public void clientWithdrawScenario(int accountId) {
+        do {
+            System.out.print("enter amount to withdraw: ");
+            String input = scanner.nextLine();
+            if (input.isEmpty()) {
+                return;
+            }
+            try {
+                int amount = Integer.parseInt(input);
+                Account account = AccountDatabase.findById(accountId);
+                Objects.requireNonNull(account).withdraw(amount);
+                System.out.println("withdrawal successful.\n");
+                return;
+            } catch (IllegalArgumentException e) {
+                System.out.println("invalid format.\n");
+            } catch (SQLException e) {
+                System.out.println("internal withdrawal error.\n");
+            } catch (NullPointerException e) {
+                System.out.println("error. cannot retrieve account data.\n");
+            } catch (SuspiciousLimitExceedingException e) {
+                System.out.println("account suspicious. cannot withdraw above limit.\n");
+            } catch (InsufficientFundsException e) {
+                System.out.println("insufficient funds.\n");
+            } catch (WithdrawalBeforeEndDateException e) {
+                System.out.println("cannot withdraw from savings account before expiry date.\n ");
+                return;
+            }
+        } while (true);
+    }
+
+    public void clientTransferScenario(int accountId) {
+
     }
 
     private void runCentralBankMode() {
