@@ -6,7 +6,6 @@ import bankingservice.bank.client.Client;
 import bankingservice.bank.service.BankService;
 import bankingservice.bank.service.ClientService;
 import bankingservice.database.AccountDatabase;
-import bankingservice.database.ClientDatabase;
 import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
@@ -28,6 +27,10 @@ public class ConsoleUI implements UI {
     private ClientService clientService;
     private CentralBank centralBank = CentralBank.getInstance();
     private String centralBankPassword;
+    private final String firstNameRegex = "[A-Z][a-z]+";
+    private final String lastNameRegex = "[A-Za-z ,.'-]+";
+    private final String addressRegex = "([A-Z][a-z]+ )+(St|Rd|Ave|Blvd|Way|La|Dr), [0-9]+[a-z]*";
+    private final String passportRegex = "[0-9]{4} [0-9]{6}";
 
     public ConsoleUI(BankService bankService, ClientService clientService, String centralBankPassword) {
         this.bankService = bankService;
@@ -37,7 +40,9 @@ public class ConsoleUI implements UI {
 
     public void run() {
         while (true) {
-            System.out.println("select app mode: (1-user; 2-central bank; 'enter'-exit)");
+            System.out.println("--select app mode");
+            System.out.println("1-user");
+            System.out.println("2-central bank");
             String mode = scanner.nextLine();
             if (mode.isEmpty()) {
                 return;
@@ -57,7 +62,7 @@ public class ConsoleUI implements UI {
 
     private void runUserMode() {
         while (true) {
-            System.out.println("--client options-press 'enter' to return--");
+            System.out.println("\n--client options--");
             System.out.println("1-login");
             System.out.println("2-create account");
             String mode = scanner.nextLine();
@@ -84,7 +89,7 @@ public class ConsoleUI implements UI {
         String surname = scanner.nextLine();
         Client client;
         try {
-            client = ClientDatabase.findByNameAndSurname(name, surname);
+            client = clientService.findClientByName(name, surname);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -105,10 +110,10 @@ public class ConsoleUI implements UI {
             if (name.isEmpty()) {
                 return;
             }
-            if (!name.matches("[A-Z][a-z]+")) {
-                System.out.println("incorrect name format.\n");;
+            if (!name.matches(firstNameRegex)) {
+                System.out.println("incorrect first name format.\n");;
             }
-        } while (!name.matches("[A-Z][a-z]+"));
+        } while (!name.matches(firstNameRegex));
 
         do {
             System.out.print("last name: ");
@@ -116,10 +121,10 @@ public class ConsoleUI implements UI {
             if (surname.isEmpty()) {
                 return;
             }
-            if (!surname.matches("[A-Z][a-z]+")) {
-                System.out.println("incorrect name format.\n");;
+            if (!surname.matches(lastNameRegex)) {
+                System.out.println("incorrect last name format.\n");;
             }
-        } while (!surname.matches("[A-Z][a-z]+"));
+        } while (!surname.matches(lastNameRegex));
 
         do {
             System.out.print("date of birth (yyyy-MM-dd): ");
@@ -136,7 +141,7 @@ public class ConsoleUI implements UI {
         } while (true);
 
         try {
-            int id = ClientDatabase.add(name, surname, dob);
+            int id = clientService.registerClient(name, surname, dob);
             userMenu(id);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -146,12 +151,97 @@ public class ConsoleUI implements UI {
     private void userMenu(int userId) {
         Client user;
         try {
-            user = ClientDatabase.findById(userId);
-            System.out.printf("\nwelcome %s %s!\n", user.firstName(), user.lastName());
+            user = clientService.findClientById(userId);
+            System.out.printf("\nwelcome %s %s!", user.firstName(), user.lastName());
         } catch (SQLException e) {
             System.out.println("could not access client profile.\n");
             return;
         }
+
+        while (true) {
+            System.out.println("\n--options--");
+            System.out.println("1-set address");
+            System.out.println("2-set passport number");
+            System.out.println("3-browse accounts");
+            String option = scanner.nextLine();
+            if (option.isEmpty()) {
+                return;
+            }
+            switch (option) {
+                case "1":
+                    try {
+                        if (!clientService.hasAddress(userId)) {
+                            offerToSetAddress(userId);
+                        } else {
+                            System.out.println("address is already set.");
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("an error occurred while address information.\n");
+                    }
+                    break;
+                case "2":
+                    try {
+                        if (!clientService.hasPassport(userId)) {
+                            offerToSetPassport(userId);
+                        } else {
+                            System.out.println("passport number is already set.");
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("an error occurred while passport information.\n");
+                    }
+                    break;
+                case "3":
+                    browseAccounts(userId);
+                    break;
+                default:
+                    System.out.println("invalid option. retry...\n");
+            }
+        }
+    }
+
+    public void offerToSetAddress(int userId) {
+        String address;
+        System.out.println("your address is not set. you can set it now or press 'enter' to do it later.");
+        do {
+            System.out.print("address (ex.: Mira St, 49a): ");
+            address = scanner.nextLine();
+            if (address.isEmpty()) {
+                return;
+            }
+            if (!address.matches(addressRegex)) {
+                System.out.println("incorrect address format.\n");
+            }
+        } while (!address.matches(addressRegex));
+
+        try {
+            clientService.setAddress(userId, address);
+        } catch (SQLException e) {
+            System.out.println("an error occurred while trying to set an address.\n");
+        }
+    }
+
+    public void offerToSetPassport(int userId) {
+        String passport;
+        System.out.println("your passport number is not set. you can set it now or press 'enter' to do it later.");
+        do {
+            System.out.print("passport number (XXXX XXXXXX): ");
+            passport = scanner.nextLine();
+            if (passport.isEmpty()) {
+                return;
+            }
+            if (!passport.matches(passportRegex)) {
+                System.out.println("incorrect passport number format.\n");
+            }
+        } while (!passport.matches(passportRegex));
+
+        try {
+            clientService.setPassport(userId, passport);
+        } catch (SQLException e) {
+            System.out.println("an error occurred while trying to set a passport number.\n");
+        }
+    }
+
+    public void browseAccounts(int userId) {
         do {
             System.out.println("available accounts:");
             List<Account> accounts;
@@ -337,7 +427,7 @@ public class ConsoleUI implements UI {
 
     public void centralBankMenu() {
         while (true) {
-            System.out.println("--central bank options-press 'enter' to return--");
+            System.out.println("--central bank options--");
             System.out.println("1-display all banks");
             System.out.println("2-create a bank");
             System.out.println("3-add interest to all accounts");

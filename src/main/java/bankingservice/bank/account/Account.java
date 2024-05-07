@@ -2,6 +2,7 @@ package bankingservice.bank.account;
 
 import bankingservice.bank.service.AccountInterface;
 import bankingservice.database.AccountDatabase;
+import bankingservice.database.ClientDatabase;
 import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
@@ -117,13 +118,4 @@ public abstract class Account implements AccountInterface {
             TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
         }
     }
-
-//    // todo перенести в банк -> банк имеет контроль и над клиентами, и над аккаунтами
-//    public void checkSuspiciousActivity() {
-//        if (!isSuspicious && (!owner.hasAddress() || !owner.hasPassport())) {
-//            isSuspicious = true;
-//        } else if (isSuspicious && (owner.hasAddress() && owner.hasPassport())) {
-//            isSuspicious = false;
-//        }
-//    }
 }
