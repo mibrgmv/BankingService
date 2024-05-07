@@ -8,11 +8,8 @@ import bankingservice.bank.client.Client;
 import bankingservice.bank.service.AccountService;
 import bankingservice.bank.service.BankService;
 import bankingservice.bank.service.ClientService;
-import bankingservice.database.AccountDatabase;
 import bankingservice.database.TransactionDatabase;
-import bankingservice.exceptions.InsufficientFundsException;
-import bankingservice.exceptions.SuspiciousLimitExceedingException;
-import bankingservice.exceptions.WithdrawalBeforeEndDateException;
+import bankingservice.exceptions.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -36,9 +33,10 @@ public class ConsoleUI implements UI {
     private final String addressRegex = "([A-Z][a-z]+ )+(St|Rd|Ave|Blvd|Way|La|Dr), [0-9]+[a-z]*";
     private final String passportRegex = "[0-9]{4} [0-9]{6}";
 
-    public ConsoleUI(BankService bankService, ClientService clientService, String centralBankPassword) {
+    public ConsoleUI(BankService bankService, ClientService clientService, AccountService accountService, String centralBankPassword) {
         this.bankService = bankService;
         this.clientService = clientService;
+        this.accountService = accountService;
         this.centralBankPassword = centralBankPassword;
     }
 
@@ -259,10 +257,10 @@ public class ConsoleUI implements UI {
                 return;
             }
             if (accounts.size() == 0) {
-                System.out.println("nothing here.");
+                System.out.println("no accounts here.");
                 return;
             }
-            System.out.println("available accounts:");
+            System.out.println("\navailable accounts:");
             int c = 0;
             for (var account : accounts) {
                 System.out.print(++c + ". " + account.toString() + '\n');
@@ -392,11 +390,12 @@ public class ConsoleUI implements UI {
 
     public void accountManagement(int accountId) {
         do {
-            System.out.println("select operation: ");
+            System.out.println("\nselect operation: ");
             System.out.println("1-deposit");
             System.out.println("2-withdraw");
             System.out.println("3-transfer");
             System.out.println("4-view history");
+            System.out.println("5-delete account");
             System.out.print("option: ");
             String option = scanner.nextLine();
             if (option.isEmpty()) {
@@ -420,11 +419,21 @@ public class ConsoleUI implements UI {
                             System.out.print(++c + ". " + transaction + '\n');
                         }
                     } catch (SQLException e) {
-                        System.out.println("error loading transaction history.\n");
+                        System.out.println("error loading transaction history.");
                     }
                     break;
+                case "5":
+                    try {
+                        accountService.deleteAccount(accountId);
+                        System.out.println("deletion successful.");
+                    } catch (SQLException | CannotFindException e) {
+                        System.out.println(e.getMessage());
+                    } catch (AccountDeletionException e) {
+                        System.out.println("cannot delete account with sufficient balance.");
+                    }
+                    return;
                 default:
-                    System.out.println("invalid input. try again...\n");
+                    System.out.println("invalid input. try again...");
             }
         } while (true);
     }

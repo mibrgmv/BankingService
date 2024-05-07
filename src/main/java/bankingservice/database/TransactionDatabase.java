@@ -91,4 +91,15 @@ public class TransactionDatabase {
         }
         return transactions;
     }
+
+    public static void deleteByAccountId(int accountId) throws SQLException {
+        var sql = "DELETE FROM transactions WHERE account_id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        pstmt.setInt(1, accountId);
+
+        pstmt.executeUpdate();
+    }
 }

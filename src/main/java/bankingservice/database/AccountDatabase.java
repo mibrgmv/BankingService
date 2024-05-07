@@ -248,4 +248,15 @@ public class AccountDatabase {
         }
         return accounts;
     }
+
+    public static void delete(int id) throws SQLException {
+        var sql = "DELETE FROM accounts WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        pstmt.setInt(1, id);
+
+        pstmt.executeUpdate();
+    }
 }

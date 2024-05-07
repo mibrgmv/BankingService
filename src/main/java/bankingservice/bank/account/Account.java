@@ -45,6 +45,10 @@ public abstract class Account implements AccountInterface {
         return bankId;
     }
 
+    public double getBalance() {
+        return balance;
+    }
+
     public boolean isSuspicious() {
         return isSuspicious;
     }
