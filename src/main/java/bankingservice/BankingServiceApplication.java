@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BankingServiceApplication {
     // todo отмена операций ЦБ
     // todo параметры бд не достаются из файла
-    // todo поэтапное содание акка
     // todo убрать прямое взаимодействие с бд
 	public static void main(String[] args) {
         new ConsoleUI(new BankService(), new ClientService(), "1234").run();

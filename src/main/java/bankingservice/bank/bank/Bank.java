@@ -49,12 +49,12 @@ public class Bank {
 
     @Override
     public String toString() {
-        return id + ". " + name +
-                ": creditCommission=" + commissionForCreditAccount +
-                ", debitInterestRate=" + interestRateForDebitAccount +
-                ", savingInterestRate=" + interestRatesForSavingsAccount +
-                ", creditLimit=" + creditLimit +
-                ", suspiciousLimit=" + limitForSuspiciousAccount;
+        return "\"" + name + "\"" +
+                ", Credit Commission = " + commissionForCreditAccount +
+                ", Debit Interest Rate = " + interestRateForDebitAccount +
+                ", Savings Interest Rate = " + interestRatesForSavingsAccount +
+                ", Credit Limit = " + creditLimit +
+                ", Limit for Suspicious Accounts = " + limitForSuspiciousAccount;
     }
 
     public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
@@ -93,35 +93,8 @@ public class Bank {
             case CREDIT:
                 return commissionForCreditAccount;
             default:
-                throw new IllegalArgumentException("Неизвестный тип счета: " + accountType);
+                throw new IllegalArgumentException("Illegal account type: " + accountType);
         }
-    }
-
-    public void deposit(int accountId, double amount) throws SQLException, SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException {
-        var account = AccountDatabase.findById(accountId);
-        if (account == null) {
-            throw new IllegalArgumentException("Account does not exist");
-        }
-        if (account.getBankId() != this.id) {
-            throw new IllegalArgumentException("Account not found in bank");
-        }
-
-        account.deposit(amount);
-    }
-
-    public void withdraw(int accountId, double amount) throws SQLException, SuspiciousLimitExceedingException, InsufficientFundsException, WithdrawalBeforeEndDateException {
-        var account = AccountDatabase.findById(accountId);
-        if (account == null) {
-            throw new IllegalArgumentException("Account does not exist");
-        }
-        if (account.getBankId() != this.id) {
-            throw new IllegalArgumentException("Account not found in bank");
-        }
-        if (account.isSuspicious() && amount > limitForSuspiciousAccount) {
-            throw new SuspiciousLimitExceedingException("Cannot withdraw from suspicious account");
-        }
-
-        account.withdraw(amount);
     }
 
     public void addInterest() throws SQLException {

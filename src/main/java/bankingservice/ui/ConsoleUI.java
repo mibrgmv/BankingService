@@ -1,6 +1,8 @@
 package bankingservice.ui;
 
 import bankingservice.bank.account.Account;
+import bankingservice.bank.account.AccountType;
+import bankingservice.bank.bank.Bank;
 import bankingservice.bank.bank.CentralBank;
 import bankingservice.bank.client.Client;
 import bankingservice.bank.service.BankService;
@@ -64,7 +66,7 @@ public class ConsoleUI implements UI {
         while (true) {
             System.out.println("\n--client options--");
             System.out.println("1-login");
-            System.out.println("2-create account");
+            System.out.println("2-register");
             String mode = scanner.nextLine();
             if (mode.isEmpty()) {
                 return;
@@ -74,7 +76,7 @@ public class ConsoleUI implements UI {
                     loginScenario();
                     break;
                 case "2":
-                    createAccountScenario();
+                    registerClientScenario();
                     break;
                 default:
                     System.out.println("invalid option. retry...\n");
@@ -96,12 +98,12 @@ public class ConsoleUI implements UI {
         if (client != null) {
             userMenu(client.id());
         } else {
-            System.out.println("cannot find client.\n");
+            System.out.println("cannot find client.");
         }
     }
 
-    private void createAccountScenario() {
-        System.out.println("to create an account, enter your");
+    private void registerClientScenario() {
+        System.out.println("\nto create an account, enter your");
         String name, surname, dob;
 
         do {
@@ -163,6 +165,7 @@ public class ConsoleUI implements UI {
             System.out.println("1-set address");
             System.out.println("2-set passport number");
             System.out.println("3-browse accounts");
+            System.out.println("4-open new account");
             String option = scanner.nextLine();
             if (option.isEmpty()) {
                 return;
@@ -192,6 +195,9 @@ public class ConsoleUI implements UI {
                     break;
                 case "3":
                     browseAccounts(userId);
+                    break;
+                case "4":
+                    openAccountScenario(userId);
                     break;
                 default:
                     System.out.println("invalid option. retry...\n");
@@ -224,7 +230,7 @@ public class ConsoleUI implements UI {
         String passport;
         System.out.println("your passport number is not set. you can set it now or press 'enter' to do it later.");
         do {
-            System.out.print("passport number (XXXX XXXXXX): ");
+            System.out.print("passport number (ex.: 1234 567890): ");
             passport = scanner.nextLine();
             if (passport.isEmpty()) {
                 return;
@@ -243,7 +249,6 @@ public class ConsoleUI implements UI {
 
     public void browseAccounts(int userId) {
         do {
-            System.out.println("available accounts:");
             List<Account> accounts;
             try {
                 accounts = AccountDatabase.getAccountsForClient(userId);
@@ -251,6 +256,11 @@ public class ConsoleUI implements UI {
                 System.out.println("error. could not get accounts\n");
                 return;
             }
+            if (accounts.size() == 0) {
+                System.out.println("nothing here.");
+                return;
+            }
+            System.out.println("available accounts:");
             int c = 0;
             for (var account : accounts) {
                 System.out.print(++c + ". " + account.toString() + '\n');
@@ -265,6 +275,110 @@ public class ConsoleUI implements UI {
                 option = Integer.parseInt(s);
                 if (option > 0 && option <= accounts.size()) {
                     accountManagement(accounts.get(option - 1).getId());
+                } else {
+                    System.out.println("option out of range.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("incorrect format.");
+            }
+        } while (true);
+    }
+
+    public void openAccountScenario(int userId) {
+        Client client;
+        List <Bank> banks;
+        try {
+            client = clientService.findClientById(userId);
+            banks = centralBank.getBanks();
+            System.out.println("to create an account, select a bank and account type.");
+            var bank = bankSelector(banks);
+            if (bank == null) {
+                return;
+            }
+            var type = accountTypeSelector();
+            if (type == null) {
+                return;
+            }
+            bankService.setBank(bank);
+            if (type == AccountType.SAVINGS) {
+                int duration = durationSelector();
+                if (duration == -1) {
+                    return;
+                }
+                bankService.openAccount(client, type, duration);
+                System.out.println("account successfully opened.");
+                return;
+            }
+            bankService.openAccount(client, type);
+            System.out.println("account successfully opened.");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public Bank bankSelector(List <Bank> banks) {
+        int c = 0;
+        for (var bank : banks) {
+            System.out.print(++c + ". " + bank.toString() + '\n');
+        }
+        do {
+            System.out.print("bank: ");
+            String s = scanner.nextLine();
+            if (s.isEmpty()) {
+                return null;
+            }
+            int option;
+            try {
+                option = Integer.parseInt(s);
+                if (option > 0 && option <= banks.size()) {
+                    return banks.get(option-1);
+                } else {
+                    System.out.println("option out of range.\n");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("incorrect format.\n");
+            }
+        } while (true);
+    }
+
+    public AccountType accountTypeSelector() {
+        int c = 0;
+        for (var accountType : AccountType.values()) {
+            System.out.print(++c + ". " + accountType.getName() + '\n');
+        }
+        do {
+            System.out.print("account type: ");
+            String s = scanner.nextLine();
+            if (s.isEmpty()) {
+                return null;
+            }
+            int option;
+            try {
+                option = Integer.parseInt(s);
+                if (option > 0 && option <= AccountType.values().length) {
+                    return AccountType.values()[option-1];
+                } else {
+                    System.out.println("option out of range.\n");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("incorrect format.\n");
+            }
+        } while (true);
+    }
+
+    public int durationSelector() {
+        System.out.println("for a savings account, please specify its duration (years)");
+        do {
+            System.out.print("duration: ");
+            String s = scanner.nextLine();
+            if (s.isEmpty()) {
+                return -1;
+            }
+            int option;
+            try {
+                option = Integer.parseInt(s);
+                if (option > 0 && option <= 999) {
+                    return option;
                 } else {
                     System.out.println("option out of range.\n");
                 }

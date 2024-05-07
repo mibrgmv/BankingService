@@ -2,7 +2,7 @@ package bankingservice.bank.account;
 
 public enum AccountType {
 
-    SAVINGS("Депозитный"),
+    SAVINGS("Сберегательный"),
     DEBIT("Дебетовый"),
     CREDIT("Кредитный");
 
