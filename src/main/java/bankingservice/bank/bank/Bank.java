@@ -117,31 +117,11 @@ public class Bank {
         if (account.getBankId() != this.id) {
             throw new IllegalArgumentException("Account not found in bank");
         }
-        if (checkSuspicious(accountId) && amount > limitForSuspiciousAccount) {
+        if (account.isSuspicious() && amount > limitForSuspiciousAccount) {
             throw new SuspiciousLimitExceedingException("Cannot withdraw from suspicious account");
         }
 
         account.withdraw(amount);
-    }
-
-    public boolean checkSuspicious(int accountId) throws SQLException {
-        var account = AccountDatabase.findById(accountId);
-        if (account == null) {
-            throw new IllegalArgumentException("Account does not exist");
-        }
-        if (account.getBankId() != this.id) {
-            throw new IllegalArgumentException("Account not found in bank");
-        }
-        var client = ClientDatabase.findById(account.getOwnerId());
-        if (client == null) {
-            throw new IllegalArgumentException("Cannot find owner of account");
-        }
-
-        if (account.isSuspicious() && client.address() != null && !client.address().isEmpty() && client.passportNumber() != null && !client.passportNumber().isEmpty()) {
-            AccountDatabase.alterSuspicious(accountId, false);
-            return false;
-        }
-        return account.isSuspicious();
     }
 
     public void addInterest() throws SQLException {

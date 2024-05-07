@@ -69,6 +69,30 @@ public class ClientDatabase {
         return null;
     }
 
+    public static void alterAddress(int id, String newAddress) throws SQLException {
+        var sql = "UPDATE clients SET address=? WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+
+        pstmt.setString(1, newAddress);
+        pstmt.setInt(2, id);
+
+        pstmt.executeUpdate();
+    }
+
+    public static void alterPassportNumber(int id, String newPassportNumber) throws SQLException {
+        var sql = "UPDATE clients SET passport=? WHERE id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+
+        pstmt.setString(1, newPassportNumber);
+        pstmt.setInt(2, id);
+
+        pstmt.executeUpdate();
+    }
+
     public static void delete(int id) throws SQLException {
         var sql = "DELETE FROM clients WHERE id=?";
 
