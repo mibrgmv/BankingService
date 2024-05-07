@@ -3,11 +3,6 @@ package bankingservice.bank.bank;
 import bankingservice.bank.account.*;
 import bankingservice.bank.client.Client;
 import bankingservice.database.AccountDatabase;
-import bankingservice.database.ClientDatabase;
-import bankingservice.exceptions.InsufficientFundsException;
-import bankingservice.exceptions.SuspiciousLimitExceedingException;
-import bankingservice.exceptions.WithdrawalBeforeEndDateException;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -73,27 +68,6 @@ public class Bank {
                 return id;
             default:
                 throw new IllegalStateException("Unexpected value: " + accountType);
-        }
-    }
-
-    public double getInterestRateForAccountType(AccountType accountType, double balance) {
-        switch (accountType) {
-            case SAVINGS:
-                if (balance < 50000) {
-                    return interestRatesForSavingsAccount;
-                }
-                else if (balance < 100000) {
-                    return interestRatesForSavingsAccount * 1.5;
-                }
-                else {
-                    return interestRatesForSavingsAccount * 2;
-                }
-            case DEBIT:
-                return interestRateForDebitAccount;
-            case CREDIT:
-                return commissionForCreditAccount;
-            default:
-                throw new IllegalArgumentException("Illegal account type: " + accountType);
         }
     }
 

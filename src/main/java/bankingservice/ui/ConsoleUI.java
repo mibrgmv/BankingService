@@ -42,7 +42,7 @@ public class ConsoleUI implements UI {
 
     public void run() {
         while (true) {
-            System.out.println("--select app mode");
+            System.out.println("--select app mode--");
             System.out.println("1-user");
             System.out.println("2-central bank");
             String mode = scanner.nextLine();
@@ -205,7 +205,7 @@ public class ConsoleUI implements UI {
         }
     }
 
-    public void offerToSetAddress(int userId) {
+    private void offerToSetAddress(int userId) {
         String address;
         System.out.println("your address is not set. you can set it now or press 'enter' to do it later.");
         do {
@@ -226,7 +226,7 @@ public class ConsoleUI implements UI {
         }
     }
 
-    public void offerToSetPassport(int userId) {
+    private void offerToSetPassport(int userId) {
         String passport;
         System.out.println("your passport number is not set. you can set it now or press 'enter' to do it later.");
         do {
@@ -247,7 +247,7 @@ public class ConsoleUI implements UI {
         }
     }
 
-    public void browseAccounts(int userId) {
+    private void browseAccounts(int userId) {
         do {
             List<Account> accounts;
             try {
@@ -284,7 +284,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public void openAccountScenario(int userId) {
+    private void openAccountScenario(int userId) {
         Client client;
         List <Bank> banks;
         try {
@@ -316,7 +316,7 @@ public class ConsoleUI implements UI {
         }
     }
 
-    public Bank bankSelector(List <Bank> banks) {
+    private Bank bankSelector(List <Bank> banks) {
         int c = 0;
         for (var bank : banks) {
             System.out.print(++c + ". " + bank.toString() + '\n');
@@ -341,7 +341,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public AccountType accountTypeSelector() {
+    private AccountType accountTypeSelector() {
         int c = 0;
         for (var accountType : AccountType.values()) {
             System.out.print(++c + ". " + accountType.getName() + '\n');
@@ -366,7 +366,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public int durationSelector() {
+    private int durationSelector() {
         System.out.println("for a savings account, please specify its duration (years)");
         do {
             System.out.print("duration: ");
@@ -388,7 +388,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public void accountManagement(int accountId) {
+    private void accountManagement(int accountId) {
         do {
             System.out.println("\nselect operation: ");
             System.out.println("1-deposit");
@@ -438,7 +438,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public void clientDepositScenario(int accountId) {
+    private void clientDepositScenario(int accountId) {
         do {
             System.out.print("enter amount to deposit: ");
             String input = scanner.nextLine();
@@ -459,7 +459,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public void clientWithdrawScenario(int accountId) {
+    private void clientWithdrawScenario(int accountId) {
         do {
             System.out.print("enter amount to withdraw: ");
             String input = scanner.nextLine();
@@ -489,7 +489,7 @@ public class ConsoleUI implements UI {
         } while (true);
     }
 
-    public void clientTransferScenario(int accountId) {
+    private void clientTransferScenario(int accountId) {
         String input;
         int amount, id;
 
@@ -550,12 +550,13 @@ public class ConsoleUI implements UI {
         }
     }
 
-    public void centralBankMenu() {
+    private void centralBankMenu() {
         while (true) {
-            System.out.println("--central bank options--");
+            System.out.println("\n--central bank options--");
             System.out.println("1-display all banks");
             System.out.println("2-create a bank");
             System.out.println("3-add interest to all accounts");
+            System.out.println("4-undo operation");
             String option = scanner.nextLine();
             if (option.isEmpty()) {
                 return;
@@ -588,6 +589,9 @@ public class ConsoleUI implements UI {
                         System.out.println("an unexpected error occurred.");
                     }
                     break;
+                case "4":
+                    undoOperationScenario();
+                    break;
                 default:
                     System.out.println("try again...\n");
             }
@@ -608,5 +612,28 @@ public class ConsoleUI implements UI {
         System.out.print("enter suspicious account limit: ");
         double suspiciousAccountLimit = scanner.nextDouble();
         centralBank.registerBank(name, debitInterestRate, savingsInterestRate, creditCommission, creditLimit, suspiciousAccountLimit);
+    }
+
+    private void undoOperationScenario() {
+        while (true) {
+            System.out.println("\nenter operation id: ");
+            String input = scanner.nextLine();
+            if (input.isEmpty()) {
+                return;
+            }
+            try {
+                int transactionId = Integer.parseInt(input);
+                if (TransactionDatabase.findById(transactionId) == null) {
+                    System.out.println("cannot find transaction.");
+                } else {
+                    centralBank.undoTransaction(transactionId);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("invalid format.");
+            } catch (SQLException | CannotUndoException e) {
+                System.out.println(e.getMessage().toLowerCase());
+            }
+        }
     }
 }
