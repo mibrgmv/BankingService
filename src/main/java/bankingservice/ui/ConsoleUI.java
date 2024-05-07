@@ -5,6 +5,7 @@ import bankingservice.bank.account.AccountType;
 import bankingservice.bank.bank.Bank;
 import bankingservice.bank.bank.CentralBank;
 import bankingservice.bank.client.Client;
+import bankingservice.bank.service.AccountService;
 import bankingservice.bank.service.BankService;
 import bankingservice.bank.service.ClientService;
 import bankingservice.database.AccountDatabase;
@@ -27,6 +28,7 @@ public class ConsoleUI implements UI {
     private Scanner scanner = new Scanner(System.in);
     private BankService bankService;
     private ClientService clientService;
+    private AccountService accountService;
     private CentralBank centralBank = CentralBank.getInstance();
     private String centralBankPassword;
     private final String firstNameRegex = "[A-Z][a-z]+";
@@ -251,7 +253,7 @@ public class ConsoleUI implements UI {
         do {
             List<Account> accounts;
             try {
-                accounts = AccountDatabase.getAccountsForClient(userId);
+                accounts = accountService.getAccountsForClient(userId);
             } catch (SQLException e) {
                 System.out.println("error. could not get accounts\n");
                 return;
@@ -436,7 +438,7 @@ public class ConsoleUI implements UI {
             }
             try {
                 int amount = Integer.parseInt(input);
-                Account account = AccountDatabase.findById(accountId);
+                Account account = accountService.findAccountById(accountId);
                 Objects.requireNonNull(account).deposit(amount);
                 System.out.println("deposit successful.\n");
                 return;
@@ -457,7 +459,7 @@ public class ConsoleUI implements UI {
             }
             try {
                 int amount = Integer.parseInt(input);
-                Account account = AccountDatabase.findById(accountId);
+                Account account = accountService.findAccountById(accountId);
                 Objects.requireNonNull(account).withdraw(amount);
                 System.out.println("withdrawal successful.\n");
                 return;
@@ -512,7 +514,7 @@ public class ConsoleUI implements UI {
             } while (true);
 
             try {
-                Account account = AccountDatabase.findById(accountId);
+                Account account = accountService.findAccountById(accountId);
                 Objects.requireNonNull(account).transfer(id, amount);
                 System.out.println("transfer successful.\n");
                 return;
