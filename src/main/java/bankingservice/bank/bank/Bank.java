@@ -34,14 +34,6 @@ public class Bank {
         return name;
     }
 
-    public double getLimitForSuspiciousAccount() {
-        return limitForSuspiciousAccount;
-    }
-
-    public double getCreditLimit() {
-        return creditLimit;
-    }
-
     @Override
     public String toString() {
         return "\"" + name + "\"" +

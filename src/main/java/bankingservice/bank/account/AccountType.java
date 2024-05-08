@@ -2,9 +2,9 @@ package bankingservice.bank.account;
 
 public enum AccountType {
 
-    SAVINGS("Сберегательный"),
-    DEBIT("Дебетовый"),
-    CREDIT("Кредитный");
+    SAVINGS("Savings"),
+    DEBIT("Debit"),
+    CREDIT("Credit");
 
     private final String name;
 

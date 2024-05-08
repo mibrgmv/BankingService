@@ -6,8 +6,17 @@ import bankingservice.bank.service.ClientService;
 import bankingservice.ui.ConsoleUI;
 
 public class BankingServiceApplication {
-    // todo убрать прямое взаимодействие с бд
-	public static void main(String[] args) {
-        new ConsoleUI(new BankService(), new ClientService(), new AccountService(), "1234").run();
+
+    public static void main(String[] args) {
+        BankService bankService = new BankService();
+        ClientService clientService = new ClientService();
+        AccountService accountService = new AccountService();
+        String centralBankPassword = "1234";
+        new ConsoleUI(
+                bankService,
+                clientService,
+                accountService,
+                centralBankPassword
+        ).run();
     }
 }

@@ -49,33 +49,33 @@ public class CentralBank {
         if (transaction == null) {
             throw new IllegalArgumentException("Nonexistent transaction");
         }
-        if (transaction.getTransactionType() == TransactionType.RECEIVING) {
+        if (transaction.transactionType() == TransactionType.RECEIVING) {
             throw new CannotUndoException("Cannot undo receiving type transaction");
         }
 
-        int accountId = transaction.getAccountId();
-        Account account = AccountDatabase.findById(transaction.getAccountId());
+        int accountId = transaction.accountId();
+        Account account = AccountDatabase.findById(transaction.accountId());
 
-        switch (transaction.getTransactionType()) {
+        switch (transaction.transactionType()) {
             case DEPOSIT:
-                AccountDatabase.alterBalance(accountId, account.getBalance() - transaction.getAmount());
+                AccountDatabase.alterBalance(accountId, account.getBalance() - transaction.amount());
                 TransactionDatabase.alterUndo(transactionId, true);
                 break;
             case WITHDRAWAL:
-                AccountDatabase.alterBalance(accountId, account.getBalance() + transaction.getAmount());
+                AccountDatabase.alterBalance(accountId, account.getBalance() + transaction.amount());
                 TransactionDatabase.alterUndo(transactionId, true);
                 break;
             case TRANSFER:
-                AccountDatabase.alterBalance(accountId, account.getBalance() + transaction.getAmount());
+                AccountDatabase.alterBalance(accountId, account.getBalance() + transaction.amount());
                 TransactionDatabase.alterUndo(transactionId, true);
                 Transaction receivingTransaction = TransactionDatabase.findById(transactionId + 1);
-                int receivingAccountId = receivingTransaction.getAccountId();
+                int receivingAccountId = receivingTransaction.accountId();
                 Account receivingAccount = AccountDatabase.findById(receivingAccountId);
-                AccountDatabase.alterBalance(receivingAccountId, receivingAccount.getBalance() - receivingTransaction.getAmount());
+                AccountDatabase.alterBalance(receivingAccountId, receivingAccount.getBalance() - receivingTransaction.amount());
                 TransactionDatabase.alterUndo(transactionId + 1, true);
                 break;
             default:
-                throw new CannotUndoException("Cannot undo " + transaction.getTransactionType() + " type transaction");
+                throw new CannotUndoException("Cannot undo " + transaction.transactionType() + " type transaction");
         }
     }
 }

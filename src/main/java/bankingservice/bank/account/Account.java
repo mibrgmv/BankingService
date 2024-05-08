@@ -2,7 +2,6 @@ package bankingservice.bank.account;
 
 import bankingservice.bank.service.AccountInterface;
 import bankingservice.database.AccountDatabase;
-import bankingservice.database.ClientDatabase;
 import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
