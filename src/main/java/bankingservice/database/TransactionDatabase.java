@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionDatabase {
 
@@ -62,6 +64,41 @@ public class TransactionDatabase {
 
         pstmt.setBoolean(1, isUndo);
         pstmt.setInt(2, id);
+
+        pstmt.executeUpdate();
+    }
+
+    public static List<Transaction> getTransactionsForClient(int id) throws SQLException {
+        var sql = "SELECT * FROM transactions where account_id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, id);
+
+        var transactions = new ArrayList<Transaction>();
+        var rs = pstmt.executeQuery();
+        while (rs.next()) {
+            var transaction = new Transaction(
+                    rs.getInt("id"),
+                    rs.getInt("account_id"),
+                    rs.getInt("bank_id"),
+                    rs.getDouble("amount"),
+                    TransactionType.valueOf(rs.getString("type")),
+                    rs.getDate("date").toLocalDate(),
+                    rs.getBoolean("is_undo")
+            );
+            transactions.add(transaction);
+        }
+        return transactions;
+    }
+
+    public static void deleteByAccountId(int accountId) throws SQLException {
+        var sql = "DELETE FROM transactions WHERE account_id=?";
+
+        var conn =  Database.connect();
+        var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        pstmt.setInt(1, accountId);
 
         pstmt.executeUpdate();
     }

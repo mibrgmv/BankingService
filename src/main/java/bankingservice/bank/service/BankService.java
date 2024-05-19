@@ -24,10 +24,6 @@ public class BankService {
         this.bank = bank;
     }
 
-    public List<Account> getAccounts() throws SQLException {
-        return AccountDatabase.getAccountsForBank(bank.getId());
-    }
-
     public int openAccount(Client client, AccountType accountType) throws SQLException {
         if (accountType == AccountType.SAVINGS) {
             throw new IllegalArgumentException("Need to specify the duration for Savings Account");

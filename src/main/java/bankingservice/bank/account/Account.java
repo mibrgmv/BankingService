@@ -32,6 +32,26 @@ public abstract class Account implements AccountInterface {
         this.interestRate = interestRate;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public int getOwnerId() {
+        return ownerId;
+    }
+
+    public int getBankId() {
+        return bankId;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public boolean isSuspicious() {
+        return isSuspicious;
+    }
+
     @Override
     public String toString() {
         return "Account{" +
@@ -63,10 +83,13 @@ public abstract class Account implements AccountInterface {
         if (this.isSuspicious && amount > this.limitForSuspiciousAccount) {
             throw new SuspiciousLimitExceedingException("Account is suspicious. Withdrawal amount above allowed limit");
         }
+        if (this.accountType != AccountType.CREDIT && amount > balance) {
+            throw new InsufficientFundsException("Insufficient funds");
+        }
 
         balance -= amount;
         AccountDatabase.alterBalance(id, balance);
-        TransactionDatabase.add(id, bankId, amount, TransactionType.WITHDRAW, LocalDate.now());
+        TransactionDatabase.add(id, bankId, amount, TransactionType.WITHDRAWAL, LocalDate.now());
     }
 
     public void transfer(int destinationId, double amount) throws SuspiciousLimitExceedingException, SQLException, InsufficientFundsException, WithdrawalBeforeEndDateException {
@@ -84,16 +107,18 @@ public abstract class Account implements AccountInterface {
 
         balance -= amount;
         destinationAccount.balance += amount;
+        AccountDatabase.alterBalance(id, balance);
+        AccountDatabase.alterBalance(destinationAccount.id, destinationAccount.balance);
         TransactionDatabase.add(id, bankId, amount, TransactionType.TRANSFER, LocalDate.now());
-        TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVE, LocalDate.now());
+        TransactionDatabase.add(destinationAccount.id, bankId, amount, TransactionType.RECEIVING, LocalDate.now());
     }
 
-//    // todo перенести в банк -> банк имеет контроль и над клиентами, и над аккаунтами
-//    public void checkSuspiciousActivity() {
-//        if (!isSuspicious && (!owner.hasAddress() || !owner.hasPassport())) {
-//            isSuspicious = true;
-//        } else if (isSuspicious && (owner.hasAddress() && owner.hasPassport())) {
-//            isSuspicious = false;
-//        }
-//    }
+    public void addInterest() throws SQLException {
+        if (balance > 0) {
+            double interestAmount = balance * interestRate / 100;
+            balance += interestAmount;
+            AccountDatabase.alterBalance(id, balance);
+            TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
+        }
+    }
 }

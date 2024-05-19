@@ -3,7 +3,6 @@ package bankingservice.bank.bank;
 import bankingservice.bank.account.*;
 import bankingservice.bank.client.Client;
 import bankingservice.database.AccountDatabase;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -35,38 +34,28 @@ public class Bank {
         return name;
     }
 
-    public double getCommissionForCreditAccount() {
-        return commissionForCreditAccount;
-    }
-
-    public double getInterestRateForDebitAccount() {
-        return interestRateForDebitAccount;
-    }
-
-    public double getInterestRatesForSavingsAccount() {
-        return interestRatesForSavingsAccount;
-    }
-
-    public double getLimitForSuspiciousAccount() {
-        return limitForSuspiciousAccount;
-    }
-
-    public double getCreditLimit() {
-        return creditLimit;
+    @Override
+    public String toString() {
+        return "\"" + name + "\"" +
+                ", Credit Commission = " + commissionForCreditAccount +
+                ", Debit Interest Rate = " + interestRateForDebitAccount +
+                ", Savings Interest Rate = " + interestRatesForSavingsAccount +
+                ", Credit Limit = " + creditLimit +
+                ", Limit for Suspicious Accounts = " + limitForSuspiciousAccount;
     }
 
     public int openAccount(Client client, AccountType accountType, int yearsDuration) throws SQLException {
         int id;
         switch (accountType) {
             case SAVINGS:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRatesForSavingsAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRatesForSavingsAccount);
                 AccountDatabase.alterEndDate(id, LocalDate.now().plusYears(yearsDuration));
                 return id;
             case DEBIT:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRateForDebitAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.interestRateForDebitAccount);
                 return id;
             case CREDIT:
-                id = AccountDatabase.add(client.getClientId(), this.id, accountType, this.limitForSuspiciousAccount, this.commissionForCreditAccount);
+                id = AccountDatabase.add(client.id(), this.id, accountType, this.limitForSuspiciousAccount, this.commissionForCreditAccount);
                 AccountDatabase.alterCreditLimit(id, this.creditLimit);
                 return id;
             default:
@@ -74,24 +63,10 @@ public class Bank {
         }
     }
 
-    public double getInterestRateForAccountType(AccountType accountType, double balance) {
-        switch (accountType) {
-            case SAVINGS:
-                if (balance < 50000) {
-                    return interestRatesForSavingsAccount;
-                }
-                else if (balance < 100000) {
-                    return interestRatesForSavingsAccount * 1.5;
-                }
-                else {
-                    return interestRatesForSavingsAccount * 2;
-                }
-            case DEBIT:
-                return interestRateForDebitAccount;
-            case CREDIT:
-                return commissionForCreditAccount;
-            default:
-                throw new IllegalArgumentException("Неизвестный тип счета: " + accountType);
+    public void addInterest() throws SQLException {
+        var accounts = AccountDatabase.getAccountsForBank(this.id);
+        for (var account : accounts) {
+            account.addInterest();
         }
     }
 }

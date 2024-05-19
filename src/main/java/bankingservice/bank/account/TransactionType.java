@@ -2,11 +2,11 @@ package bankingservice.bank.account;
 
 public enum TransactionType {
 
-    DEPOSIT("Депозит"),
-    WITHDRAW("Снятие"),
-    TRANSFER("Перевод"),
-    RECEIVE("Получение"),
-    INTEREST("Проценты");
+    DEPOSIT("Deposit"),
+    WITHDRAWAL("Withdrawal"),
+    TRANSFER("Transfer"),
+    RECEIVING("Receiving"),
+    INTEREST("Interest");
 
     private final String name;
 

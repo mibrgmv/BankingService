@@ -1,10 +1,13 @@
 package bankingservice.bank.account;
 
+import bankingservice.database.AccountDatabase;
+import bankingservice.database.TransactionDatabase;
 import bankingservice.exceptions.InsufficientFundsException;
 import bankingservice.exceptions.SuspiciousLimitExceedingException;
 import bankingservice.exceptions.WithdrawalBeforeEndDateException;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 public class CreditAccount extends Account {
 
@@ -35,5 +38,15 @@ public class CreditAccount extends Account {
         }
 
         super.transfer(destinationId, amount);
+    }
+
+    @Override
+    public void addInterest() throws SQLException {
+        if (balance < 0) {
+            double interestAmount = balance * interestRate / 100;
+            balance -= interestAmount;
+            AccountDatabase.alterBalance(id, balance);
+            TransactionDatabase.add(id, bankId, interestAmount, TransactionType.INTEREST, LocalDate.now());
+        }
     }
 }
