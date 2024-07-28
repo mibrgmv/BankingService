@@ -1,6 +1,8 @@
 ## Технологии
 Java, Spring Boot, JDBC, Postgres, JUnit, Mockito <br />
 Docker and Flyway are coming soon...
+## Запуск
+В файле `resources/db.properties` подставить свойства для подключения к БД
 ## Описание
 Приложение поддерживает два режима работы: пользователь и центральный банк. 
 ### Центральный банк
