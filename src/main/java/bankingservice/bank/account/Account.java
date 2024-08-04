@@ -12,14 +12,14 @@ import java.time.LocalDate;
 
 public abstract class Account implements AccountInterface {
 
-    int id;
-    int ownerId;
-    int bankId;
-    double balance;
-    boolean isSuspicious;
-    AccountType accountType;
-    double limitForSuspiciousAccount;
-    double interestRate;
+    protected int id;
+    protected   int ownerId;
+    protected int bankId;
+    protected double balance;
+    protected boolean isSuspicious;
+    protected AccountType accountType;
+    protected double limitForSuspiciousAccount;
+    protected double interestRate;
 
     public Account(int id, int ownerId, int bankId, double balance, boolean isSuspicious, AccountType accountType, double limitForSuspiciousAccount, double interestRate) {
         this.id = id;
